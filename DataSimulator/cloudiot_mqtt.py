@@ -30,7 +30,7 @@ class Device(object):
 	def __init__(self, device_id):
 		
 		self.connected = False
-		self.features = ["operational_setting_1",  "operational_setting_2", "operational_setting_3", "sensor_measurement_1", "sensor_measurement_2", "sensor_measurement_3", "sensor_measurement_4", "sensor_measurement_5", "sensor_measurement_6", "sensor_measurement_7", "sensor_measurement_8", "sensor_measurement_9", "sensor_measurement_10", "sensor_measurement_11", "sensor_measurement_12", "sensor_measurement_13", "sensor_measurement_14", "sensor_measurement_15", "sensor_measurement_16", "sensor_measurement_17", "sensor_measurement_18", "sensor_measurement_19", "sensor_measurement_20", "sensor_measurement_21"]
+		self.features = ["OpSet1",  "OpSet2", "OpSet3", "SensorMeasure1", "SensorMeasure2", "SensorMeasure3", "SensorMeasure4", "SensorMeasure5", "SensorMeasure6", "SensorMeasure7", "SensorMeasure8", "SensorMeasure9", "SensorMeasure10", "SensorMeasure11", "SensorMeasure12", "SensorMeasure13", "SensorMeasure14", "SensorMeasure15", "SensorMeasure16", "SensorMeasure17", "SensorMeasure18", "SensorMeasure19", "SensorMeasure20", "SensorMeasure21"]
 		self.id = device_id
 		self.mqtt_telemetry_topic = '/devices/{}/events'.format(device_id)
 		self.device_time = abs(int(np.random.normal(187.32, 82.40)))
@@ -42,14 +42,14 @@ class Device(object):
 			text = data.encode('ascii', 'ignore')
 		self.feature_trends = json.loads(text)
 
-	def update_feature_data(self, time):
+	def update_feature_data(self, cycle):
 		"""Pretend to read the device's feature data."""
 		values = {}
-		values["device_id"] = self.id
-		values["time"] = time
+		values["UnitNumber"] = self.id
+		values["Cycle"] = cycle
 		for feature in self.features:
-			values[feature] = abs(np.random.normal(self.feature_trends[feature + "_" + str(time) + "_" + "mean"], \
-							self.feature_trends[feature + "_" + str(time) + "_" + "std"] ))
+			values[feature] = abs(np.random.normal(self.feature_trends[feature + "_" + str(cycle) + "_" + "mean"], \
+							self.feature_trends[feature + "_" + str(cycle) + "_" + "std"] ))
 		return json.dumps(values)
 
 	def wait_for_connection(self, timeout):
@@ -74,7 +74,7 @@ class Device(object):
 
 	def on_publish(self, unused_client, unused_userdata, unused_mid):
 		"""Callback when the device receives a PUBACK from the MQTT bridge."""
-		#print 'Published message acked.'
+		print 'Published message acked.'
 
 	def on_subscribe(self, unused_client, unused_userdata, unused_mid,
 		           granted_qos):
@@ -201,7 +201,7 @@ def main():
 
 	device_ids = []
 	for i in xrange(args.num_devices):
-		device_id = 'rs256-device_{}'.format(i)
+		device_id = 'rs256-device_iot_10_acked_1_{}'.format(i)
 		device_registry.create_device_with_rs256(
 			device_id, args.rsa_certificate_file)
 		device_ids.append(device_id)
@@ -225,7 +225,10 @@ def main():
 			if cycle > Devices[j].device_time:
 				continue
 			payload = Devices[j].update_feature_data(cycle)
+			#print payload
+
 			Clients[j].publish(Devices[j].mqtt_telemetry_topic, payload, qos=1)
+			time.sleep(.01)
 
 	print [Devices[i].device_time for i in xrange(len(Devices))]
 

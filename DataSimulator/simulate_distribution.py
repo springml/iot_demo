@@ -22,21 +22,20 @@ def load_data():
 	df = pd.concat(all_dfs, ignore_index=True)
 
 	#changing column names to make them more human readable
-	col_names = ["unit", "time", "operational_setting_1", "operational_setting_2", "operational_setting_3"]
+	col_names = ["unit", "time", "OpSet1", "OpSet2", "OpSet3"]
 	for i in xrange(1,24):
-		col_names.append("sensor_measurement_" + str(i))
+		col_names.append("SensorMeasure" + str(i))
 	df.columns = col_names
-	df.drop(['sensor_measurement_22', "sensor_measurement_23"], axis=1, inplace=True)
+	df.drop(['SensorMeasure22', "SensorMeasure23"], axis=1, inplace=True)
 
 	return df
 
 def generate_distribution_file(df):
 
-	np.set_printoptions(suppress=True)
 	#group by functions to apply on all observational column in dataframe
-	gb_functions = { 'operational_setting_1': ['mean', 'std'], 'operational_setting_2'  : ['mean', 'std'], 'operational_setting_3'  : ['mean', 'std'],  'sensor_measurement_1': ['mean', 'count', 'std'], 'sensor_measurement_2': ['mean', 'std'], 'sensor_measurement_3'  : ['mean', 'std'], 'sensor_measurement_4'  : ['mean', 'std'], \
-	'sensor_measurement_5'  : ['mean', 'std'], 'sensor_measurement_6'  : ['mean', 'std'], 'sensor_measurement_7'  : ['mean', 'std'], 'sensor_measurement_8'  : ['mean', 'std'],  'sensor_measurement_9'  : ['mean', 'std'], 'sensor_measurement_10'  : ['mean', 'std'], 'sensor_measurement_11'  : ['mean', 'std'], 'sensor_measurement_12'  : ['mean', 'std'], \
-	'sensor_measurement_13'  : ['mean', 'std'], 'sensor_measurement_14'  : ['mean', 'std'], 'sensor_measurement_15'  : ['mean', 'std'], 'sensor_measurement_16'  : ['mean', 'std'],  'sensor_measurement_17'  : ['mean', 'std'], 'sensor_measurement_18'  : ['mean', 'std'], 'sensor_measurement_19'  : ['mean', 'std'], 'sensor_measurement_20'  : ['mean', 'std'], 'sensor_measurement_21'  : ['mean', 'std']}
+	gb_functions = { 'OpSet1': ['mean', 'std'], 'OpSet2'  : ['mean', 'std'], 'OpSet3'  : ['mean', 'std'],  'SensorMeasure1': ['mean', 'count', 'std'], 'SensorMeasure2': ['mean', 'std'], 'SensorMeasure3'  : ['mean', 'std'], 'SensorMeasure4'  : ['mean', 'std'], \
+	'SensorMeasure5'  : ['mean', 'std'], 'SensorMeasure6'  : ['mean', 'std'], 'SensorMeasure7'  : ['mean', 'std'], 'SensorMeasure8'  : ['mean', 'std'],  'SensorMeasure9'  : ['mean', 'std'], 'SensorMeasure10'  : ['mean', 'std'], 'SensorMeasure11'  : ['mean', 'std'], 'SensorMeasure12'  : ['mean', 'std'], \
+	'SensorMeasure13'  : ['mean', 'std'], 'SensorMeasure14'  : ['mean', 'std'], 'SensorMeasure15'  : ['mean', 'std'], 'SensorMeasure16'  : ['mean', 'std'],  'SensorMeasure17'  : ['mean', 'std'], 'SensorMeasure18'  : ['mean', 'std'], 'SensorMeasure19'  : ['mean', 'std'], 'SensorMeasure20'  : ['mean', 'std'], 'SensorMeasure21'  : ['mean', 'std']}
 
 	features = df.columns[2:].tolist()
 
@@ -49,7 +48,7 @@ def generate_distribution_file(df):
 			if math.isnan(std):
 				std = 10
 			feature_distribution[feature + "_" + str(time) + "_" + "mean"] = df_trends[feature]["mean"][time]
-			feature_distribution[feature + "_" + str(time) + "_" + "std"] = std
+			feature_distribution[feature + "_" + str(time) + "_" + "std"] = abs(std)
 	with open("feature_distribution.json", 'w') as fp:
 		json.dump(feature_distribution, fp)
 
