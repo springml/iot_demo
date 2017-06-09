@@ -4,6 +4,8 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.*;
 import com.google.api.client.http.json.JsonHttpContent;
+import com.google.gson.Gson;
+import com.springml.device.service.model.LifeCyclePredictionResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,15 +14,19 @@ import java.io.Serializable;
 import java.util.Collections;
 
 /**
- * Created by kaarthikraaj on 6/6/17.
+ * This the the DeviceLifeCyclePredictor API Client that  is responsible for calling
+ * ML API and parsing the response
  */
 public class DeviceLifeCyclePredictorClient implements Serializable {
     private static final Logger LOG = LoggerFactory.getLogger(DeviceLifeCyclePredictorClient.class);
     private String CLOUDML_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
 
+    /*
+        The method is responsible for calling ML API
+         */
+    public LifeCyclePredictionResponse getPredictedLifeCycle(JsonHttpContent jsonHttpContent, String predictRestUrl) {
+        LifeCyclePredictionResponse predictionResponse = new LifeCyclePredictionResponse();
 
-    public String getPredictedLifeCycle(JsonHttpContent jsonHttpContent, String predictRestUrl) {
-        String predictionResponse = "";
         try {
             GoogleCredential credential = GoogleCredential.getApplicationDefault()
                     .createScoped(Collections.singleton(CLOUDML_SCOPE));
@@ -35,12 +41,12 @@ public class DeviceLifeCyclePredictorClient implements Serializable {
             HttpRequest request = requestFactory.buildPostRequest(url, jsonHttpContent);
 
             HttpResponse response = request.execute();
-            predictionResponse = response.parseAsString();
+            Gson gson = new Gson();
+            predictionResponse = gson.fromJson(response.parseAsString(), LifeCyclePredictionResponse.class);
 
             LOG.info("CloudML prediction response \n" + predictionResponse);
         } catch (Exception e) {
             LOG.error("Error while getting predictions using CloudML", e);
-            predictionResponse = "Exception while getting prediction";
         }
 
         return predictionResponse;

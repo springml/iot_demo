@@ -7,7 +7,9 @@ import static org.junit.Assert.assertNotEquals;
 
 
 /**
- * Created by kaarthikraaj on 8/6/17.
+ * This the the junit test file for DeviceLifeCyclePredictorMLTransform
+ * that  is responsible for testing
+ * ML API and asserting the response
  */
 public class DeviceLifeCyclePredictorMLTransormationTest {
 
