@@ -7,6 +7,7 @@ import jwt
 import paho.mqtt.client as mqtt
 import numpy as np
 from create_device import DeviceRegistry
+import collections
 
 def create_jwt(project_id, private_key_file, algorithm):
 	"""Create a JWT (https://jwt.io) to establish an MQTT connection."""
@@ -44,7 +45,7 @@ class Device(object):
 
 	def update_feature_data(self, cycle):
 		"""Pretend to read the device's feature data."""
-		values = {}
+		values = collections.OrderedDict()
 		values["UnitNumber"] = self.id
 		values["Cycle"] = cycle
 		for feature in self.features:
@@ -201,7 +202,7 @@ def main():
 
 	device_ids = []
 	for i in xrange(args.num_devices):
-		device_id = 'rs256-device_iot_10_acked_1_{}'.format(i)
+		device_id = ''.join(random.choice('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ') for i in xrange(10))
 		device_registry.create_device_with_rs256(
 			device_id, args.rsa_certificate_file)
 		device_ids.append(device_id)
@@ -225,12 +226,12 @@ def main():
 			if cycle > Devices[j].device_time:
 				continue
 			payload = Devices[j].update_feature_data(cycle)
-			#print payload
+			print payload
 
 			Clients[j].publish(Devices[j].mqtt_telemetry_topic, payload, qos=1)
 			time.sleep(.01)
 
-	print [Devices[i].device_time for i in xrange(len(Devices))]
+	print [(Devices[i].device_time,  Devices[i].id) for i in xrange(len(Devices))]
 
 	for client in Clients:
 		close_client(client)
