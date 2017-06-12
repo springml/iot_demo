@@ -8,8 +8,17 @@ import com.springml.device.service.model.LifeCyclePredictionResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import java.io.ByteArrayOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -63,20 +72,20 @@ public class DeviceLifeCyclePredictorMLTransormation extends DoFn<TableRow, Tabl
     }
 
 
-    private TableRow getTableRowFromResponse(LifeCyclePredictionResponse predictionResponse, String unitNumber) {
-        TableRow tableRow = new TableRow();
+    private TableRow getTableRowFromResponse(LifeCyclePredictionResponse predictionResponse, TableRow responseRow) {
         try {
-            tableRow.set("UnitNumber", unitNumber);
             float remainingOperationCycles = predictionResponse.getPredictions()[0].getOutputs();
-            tableRow.set("RemainingOperationCycles", remainingOperationCycles);
-            tableRow.set("UpdatedDate", new Timestamp(new Date().getTime()));
+            if(remainingOperationCycles < 121 ) {
+                LOG.warn("RemainingOperationCycles threshold reached for device with Unit Number"+responseRow.get("UnitNumber")+" The RUL Value is "+remainingOperationCycles);
+            }
+            responseRow.set("RemainingOperationCycles", remainingOperationCycles);
+            responseRow.set("PredictedDate",  LocalDateTime.now().toString());
         } catch (Exception e) {
-            tableRow.set("UnitNumber", -1);
-            tableRow.set("RemainingOperationCycles", -99999);
-            tableRow.set("UpdatedDate", new Timestamp(new Date().getTime()));
-            LOG.info("Exception while parsing response" + e.getMessage());
+            responseRow.set("RemainingOperationCycles", -99999);
+            responseRow.set("PredictedDate",  LocalDateTime.now());
+            LOG.info("Exception while parsing response" + e.getMessage().toString());
         }
-        return tableRow;
+        return responseRow;
     }
 
     /*
@@ -128,7 +137,6 @@ public class DeviceLifeCyclePredictorMLTransormation extends DoFn<TableRow, Tabl
     protected TableRow getPredictedLifeCycle(TableRow sensorDetails) {
         TableRow responseRow = new TableRow();
 
-
         try {
 
             JacksonFactory jacksonFactory = new JacksonFactory();
@@ -138,12 +146,14 @@ public class DeviceLifeCyclePredictorMLTransormation extends DoFn<TableRow, Tabl
             jsonHttpContent.setWrapperKey("instances");
             LifeCyclePredictionResponse predictionResponse = deviceLifeCyclePredictorClient.getPredictedLifeCycle(jsonHttpContent, fleetPreventiveMLUrl);
 
-            return getTableRowFromResponse(predictionResponse, sensorDetails.get("UnitNumber").toString());
+            return getTableRowFromResponse(predictionResponse, sensorDetails);
         } catch (Exception exc) {
             LOG.error("Error while getting predictions using CloudML", exc.getMessage());
         }
 
         return responseRow;
     }
+
+
 
 }

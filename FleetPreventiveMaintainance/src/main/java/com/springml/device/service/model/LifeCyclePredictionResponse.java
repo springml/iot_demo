@@ -1,7 +1,8 @@
 package com.springml.device.service.model;
 
 /**
- * Created by kaarthikraaj on 6/6/17.
+ * This the the LifeCyclePredictionResponse class that is the pojo instance
+ * of json output from DeviceLifeCyclePredictor ML API
  */
 public class LifeCyclePredictionResponse {
      Predictions[] predictions;

@@ -25,7 +25,7 @@ public interface DeviceLifeCyclePredictorPipelineOptions extends DataflowPipelin
     void setSourceTopic(String value);
 
     @Description("subscription")
-    @Default.String("mlpdmsubscription")
+    @Default.String("TestSubscription")
     @Validation.Required
     String getSubscriptionName();
 

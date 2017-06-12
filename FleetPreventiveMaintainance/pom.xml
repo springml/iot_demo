@@ -40,6 +40,13 @@
     </build>
 
     <dependencies>
+        <!-- https://mvnrepository.com/artifact/com.google.apis/google-api-services-monitoring -->
+        <dependency>
+            <groupId>javax.mail</groupId>
+            <artifactId>mail</artifactId>
+            <version>1.4</version>
+        </dependency>
+
         <dependency>
             <groupId>com.google.cloud.dataflow</groupId>
             <artifactId>google-cloud-dataflow-java-sdk-all</artifactId>
