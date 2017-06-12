@@ -8,6 +8,7 @@ import com.google.cloud.dataflow.sdk.coders.TableRowJsonCoder;
 import com.google.cloud.dataflow.sdk.io.BigQueryIO;
 import com.google.cloud.dataflow.sdk.io.PubsubIO;
 import com.google.cloud.dataflow.sdk.options.PipelineOptionsFactory;
+
 import com.google.cloud.dataflow.sdk.transforms.ParDo;
 import com.google.cloud.dataflow.sdk.values.PCollection;
 
@@ -15,7 +16,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by kaarthikraaj on 2/6/17.
+ * The Device LifeCycle Predictor data flow main class
+ * The main method is responsible for creating data flow pipeline and
+ * setting transformations
  */
 public class DeviceServiceGDF {
 
@@ -23,41 +26,26 @@ public class DeviceServiceGDF {
         DeviceLifeCyclePredictorPipelineOptions options =
                 PipelineOptionsFactory.fromArgs(args).withValidation().as(DeviceLifeCyclePredictorPipelineOptions.class);
         Pipeline p = Pipeline.create(options);
-        System.out.println("Project is" + options.getSourceProject() + " subscription" + options.getSubscriptionName());
         PCollection<TableRow> datastream = p.apply(PubsubIO.Read.named("Read device iot data from PubSub")
-                // .subscription(String.format("projects/%s/subscriptions/%s", options.getSourceProject(), options.getSubscriptionName()))
+               //  .subscription(subscription.asPath())
+               // .subscription(options.getSubscriptionName())
                 .topic(String.format("projects/%s/topics/%s", options.getSourceProject(), options.getSourceTopic()))
                 .timestampLabel("ts")
                 .withCoder(TableRowJsonCoder.of()));
 
         String fleetPreventMLServiceUrl = options.getFleetPreventMLUrl();
-        //String apiKey = options.getApiKey();
-        // String redeemCouponServiceUrl = options.getRedeemCouponServiceUrl();
-        datastream.apply(BigQueryIO.Write.named("Write to BigQuery")
+
+        datastream.apply("Invoking FleetPreventiveMaintainanceML", ParDo.of(new DeviceLifeCyclePredictorMLTransormation(fleetPreventMLServiceUrl)))
+        .apply(BigQueryIO.Write.named("Write to BigQuery")
                 .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED)
                 .withSchema(getDeviceSensorReadingsSchema())
                 .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND)
                 .to(options.getDeviceSensorReadingsTable()));
-        datastream.apply("Invoking FleetPreventiveMaintainanceML", ParDo.of(new DeviceLifeCyclePredictorMLTransormation(fleetPreventMLServiceUrl)))
-                .apply(BigQueryIO.Write.named("Write remaining lifecycle predictions response to BigQuery")
-                        .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED)
-                        .withSchema(getDeviceRemainngLifeCyleSchema())
-                        .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND)
-                        .to(options.getDeviceRemainingLifeCycleOperationsTable()));
-               /* .apply("Invoking Redeem Coupon Service",ParDo.of(new RedeemCouponServiceClient(redeemCouponServiceUrl,apiKey)))
-                ;
-                        */
 
         p.run();
     }
 
-    private static TableSchema getDeviceRemainngLifeCyleSchema() {
-        List<TableFieldSchema> fields = new ArrayList<>();
 
-        fields.add(new TableFieldSchema().setName("Unit_Number").setType("INTEGER"));
-        fields.add(new TableFieldSchema().setName("RemainingOperationCycles").setType("FLOAT"));
-        return new TableSchema().setFields(fields);
-    }
 
     private static TableSchema getDeviceSensorReadingsSchema() {
         List<TableFieldSchema> fields = new ArrayList<>();
@@ -87,6 +75,9 @@ public class DeviceServiceGDF {
         fields.add(new TableFieldSchema().setName("OpSet3").setType("FLOAT"));
         fields.add(new TableFieldSchema().setName("OpSet2").setType("FLOAT"));
         fields.add(new TableFieldSchema().setName("OpSet1").setType("FLOAT"));
+        fields.add(new TableFieldSchema().setName("RemainingOperationCycles").setType("FLOAT"));
+        fields.add(new TableFieldSchema().setName("PredictedDate").setType("DATETIME"));
+
         return new TableSchema().setFields(fields);
     }
 }
