@@ -27,9 +27,9 @@ public class DeviceServiceGDF {
                 PipelineOptionsFactory.fromArgs(args).withValidation().as(DeviceLifeCyclePredictorPipelineOptions.class);
         Pipeline p = Pipeline.create(options);
         PCollection<TableRow> datastream = p.apply(PubsubIO.Read.named("Read device iot data from PubSub")
-               //  .subscription(subscription.asPath())
-               // .subscription(options.getSubscriptionName())
-                .topic(String.format("projects/%s/topics/%s", options.getSourceProject(), options.getSourceTopic()))
+               //  .subscription(String.format("projects/%s/topics/%s",subscription.asPath())
+                .subscription(String.format("projects/%s/subscriptions/%s",options.getSourceProject(),options.getSubscriptionName()))
+               // .topic(String.format("projects/%s/topics/%s", options.getSourceProject(), options.getSourceTopic()))
                 .timestampLabel("ts")
                 .withCoder(TableRowJsonCoder.of()));
 
