@@ -99,6 +99,9 @@ class DeviceRegistry(object):
 
         # Create a device with the given certificate. Note that you can have
         # multiple credentials associated with a device.
+        
+        print "in create_device.py"
+        print device_id
         device_template = {
             'id': device_id,
             'credentials': [{
