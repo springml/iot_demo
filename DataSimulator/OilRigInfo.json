@@ -1,0 +1,40 @@
+{
+"plants":
+	[
+{
+	"Name": "Mid Power Oil Company",
+	"Latitude": 27.760427,
+	"Longtitude": -95.369803
+},
+{
+	"Name": "Indian O&E",
+	"Latitude": 28.760427,
+	"Longtitude": -90.369803
+	
+},
+{
+	"Name": "Clean Oil and Gas INC",
+	"Latitude": 25.760427,
+	"Longtitude": -93.369803
+	
+
+},
+{
+	"Name": "Clean Oil and Gas INC",
+	"Latitude": 26.760427,
+	"Longtitude": -88.369803
+	
+},
+{
+	"Name": "Gulf Energy",
+	"Latitude": 26.720427,
+	"Longtitude": -96.96803
+	
+},
+{
+	"Name": "AP & Energy",
+	"Latitude": 27.720427,
+	"Longtitude": -95.96803
+
+}]
+}
