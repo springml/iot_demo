@@ -38,11 +38,11 @@ class Device(object):
 		self.latitude = plant["Latitude"]
 		self.longitude = plant["Longtitude"]
 		self.mqtt_telemetry_topic = '/devices/{}/events'.format(device_id)
-		self.device_time = abs(int(np.random.normal(187.32, 82.40)))
+		self.device_time = abs(int(np.random.normal(206, 46)))
 		self.sensor_trends = {}
 
 	def initialize_features(self):
-		with open("feature_distribution.json") as fp:
+		with open("feature_distribution_0.json") as fp:
 			data = fp.read()
 			text = data.encode('ascii', 'ignore')
 		self.sensor_trends = json.loads(text)
