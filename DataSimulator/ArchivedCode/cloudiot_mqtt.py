@@ -28,37 +28,30 @@ def error_str(rc):
 class Device(object):
 	#Represents the state of a single device
 
-	def __init__(self, device_id, unit_num, plant):
+	def __init__(self, device_id):
 		
 		self.connected = False
 		self.features = ["OpSet1",  "OpSet2", "OpSet3", "SensorMeasure1", "SensorMeasure2", "SensorMeasure3", "SensorMeasure4", "SensorMeasure5", "SensorMeasure6", "SensorMeasure7", "SensorMeasure8", "SensorMeasure9", "SensorMeasure10", "SensorMeasure11", "SensorMeasure12", "SensorMeasure13", "SensorMeasure14", "SensorMeasure15", "SensorMeasure16", "SensorMeasure17", "SensorMeasure18", "SensorMeasure19", "SensorMeasure20", "SensorMeasure21"]
-		self.device_id = device_id
-		self.unit = "Unit_" + str(unit_num)
-		self.IndustrialPlant = plant["Name"]
-		self.latitude = plant["Latitude"]
-		self.longitude = plant["Longtitude"]
+		self.id = device_id
 		self.mqtt_telemetry_topic = '/devices/{}/events'.format(device_id)
-		self.device_time = abs(int(np.random.normal(206, 46)))
-		self.sensor_trends = {}
+		self.device_time = abs(int(np.random.normal(187.32, 82.40)))
+		self.feature_trends = {}
 
 	def initialize_features(self):
 		with open("feature_distribution.json") as fp:
 			data = fp.read()
 			text = data.encode('ascii', 'ignore')
-		self.sensor_trends = json.loads(text)
+		self.feature_trends = json.loads(text)
 
-	def update_sensor_data(self, cycle):
+	def update_feature_data(self, cycle):
 		"""Pretend to read the device's feature data."""
-		sensor_reading = collections.OrderedDict()
-		sensor_reading["IndustrialPlantName"] = self.IndustrialPlant
-		sensor_reading["Latitude"] = self.latitude
-		sensor_reading["Longtitude"] = self.longitude
-		sensor_reading["UnitNumber"] = self.unit
-		sensor_reading["Cycle"] = cycle
+		values = collections.OrderedDict()
+		values["UnitNumber"] = self.id
+		values["Cycle"] = cycle
 		for feature in self.features:
-			sensor_reading[feature] = abs(np.random.normal(self.sensor_trends[feature + "_" + str(cycle) + "_" + "mean"], \
-							self.sensor_trends[feature + "_" + str(cycle) + "_" + "std"] ))
-		return json.dumps(sensor_reading)
+			values[feature] = abs(np.random.normal(self.feature_trends[feature + "_" + str(cycle) + "_" + "mean"], \
+							self.feature_trends[feature + "_" + str(cycle) + "_" + "std"] ))
+		return json.dumps(values)
 
 	def wait_for_connection(self, timeout):
 		"""Wait for the device to become connected."""
@@ -140,13 +133,8 @@ def parse_command_line_args():
 		required=True,
 		help='Path to service account json file.')
 	parser.add_argument(
-		'--plants_info_dir',
-		default = 'OilRigInfo.json',
-		help='Path to file about the various Industrial Plants')
-	parser.add_argument(
 		'--cloud_region', default='us-central1', help='GCP cloud region')
-	parser.add_argument('--num_plants', default=2, help='Number of Industrial Plants to simulate', type=int)
- 	parser.add_argument('--num_machines', default=2, help='Number of Machines on a Plant to Simulate', type=int)
+ 	parser.add_argument('--num_devices', default=2, help='Number of Devices to Simulate', type=int)
 	parser.add_argument(
 		'--rsa_certificate_file',
 		default='rsa_cert.pem',
@@ -168,7 +156,7 @@ def close_client(client):
 	client.disconnect()
 	client.loop_stop()
 
-def setup_client_device(registry_id, device_id, unit_num, plant):
+def setup_client_device(registry_id, device_id):
 
 	args = parse_command_line_args()
 	
@@ -183,7 +171,7 @@ def setup_client_device(registry_id, device_id, unit_num, plant):
 	#configures network encryption and authentication
 	client.tls_set(ca_certs=args.ca_certs)
 
-	device = Device(device_id, unit_num, plant)
+	device = Device(device_id)
 
 	client.on_connect = device.on_connect
 	client.on_publish = device.on_publish
@@ -201,39 +189,32 @@ def setup_client_device(registry_id, device_id, unit_num, plant):
 
 	return client, device
 	
-def get_plants_info(plants_info_dir, num_plants):
-	with open(plants_info_dir) as fp:
-		data = fp.read()
-		text = data.encode('ascii', 'ignore')
-	plants_info = json.loads(text)
-	return plants_info["plants"][:num_plants]
+
 
 def main():
 	args = parse_command_line_args()
 
-	registry_id = 'cloudiot_device_manager_registry_1497594495'
-	#registry_id = 'cloudiot_device_manager_registry_{}'.format(int(time.time()))
+	registry_id = 'cloudiot_device_manager_registry_{}'.format(int(time.time()))
 
 	device_registry = DeviceRegistry( \
 		args.project_id, registry_id, args.cloud_region, \
 		args.service_account_json, args.api_key, args.pubsub_topic)
 
-	plants_info = get_plants_info(args.plants_info_dir, args.num_plants)
-
-	Clients = []
-	Devices = []
-
-	for plant in plants_info:
-		for unit_num in xrange(args.num_machines):
-			device_id = ''.join(random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ') for i in xrange(10))
-			device_registry.create_device_with_rs256(device_id, args.rsa_certificate_file)
-			client, device = setup_client_device(registry_id, device_id, unit_num, plant)
-			Clients.append(client)
-			Devices.append(device)
-
+	device_ids = []
+	for i in xrange(args.num_devices):
+		device_id = ''.join(random.choice('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ') for i in xrange(10))
+		device_registry.create_device_with_rs256(
+			device_id, args.rsa_certificate_file)
+		device_ids.append(device_id)
 
 	
 	#Based upon # of devices specified in the command line, creating corresponding # of clients and device objects
+	Clients = []
+	Devices = []
+	for device_id in device_ids:
+		client, device = setup_client_device(registry_id, device_id)
+		Clients.append(client)
+		Devices.append(device)
 
 	max_device_time = max([Devices[i].device_time for i in xrange(len(Devices))])
 	
@@ -242,17 +223,15 @@ def main():
 	for cycle in xrange(1, max_device_time):
 
 		for j in xrange(len(Devices)):
-			
 			if cycle > Devices[j].device_time:
 				continue
-
-			payload = Devices[j].update_sensor_data(cycle)
+			payload = Devices[j].update_feature_data(cycle)
 			print payload
 
 			Clients[j].publish(Devices[j].mqtt_telemetry_topic, payload, qos=1)
-			time.sleep(.1)
+			time.sleep(.01)
 
-	print [(Devices[i].device_time,  Devices[i].device_id) for i in xrange(len(Devices))]
+	print [(Devices[i].device_time,  Devices[i].id) for i in xrange(len(Devices))]
 
 	for client in Clients:
 		close_client(client)
