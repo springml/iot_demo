@@ -96,10 +96,11 @@ public class OilRigsDevicesManager {
         return min + (int)(Math.random() * ((max - min) + 1));
     }
 
-    public static ArrayList<OilRig> getOilRigs() {
+    public static ArrayList<OilRig> getOilRigs( int durationInMins) {
         ArrayList<OilRig> oilRigs = new ArrayList<OilRig>();
         //callbigquery to get list of IndustrialPlants and form arraylist
-        String industrialPlantsQuery = generateIndustrialPlantsQuery();
+        String industrialPlantsQuery = generateIndustrialPlantsQuery(getFromDate(durationInMins));
+        System.out.println("the query is "+industrialPlantsQuery);
         Job industrialPlantsJob = createJob(industrialPlantsQuery, bigQueryClient);
         waitForJobCompletion(industrialPlantsJob);
         QueryResponse response = bigQueryClient.getQueryResults(industrialPlantsJob.getJobId());
@@ -170,63 +171,65 @@ public class OilRigsDevicesManager {
     }
 
 
-    private static String generateIndustrialPlantsQuery() {
-        String fetchIndustrialPlantsQuery = "SELECT IndustrialPlantName,Latitude,Longtitude FROM [mlpdm-168115:FleetMaintainance.DeviceSensorReadings] where IndustrialPlantName is not null group by  \n" +
+    private static String generateIndustrialPlantsQuery(String fromDate) {
+        String fetchIndustrialPlantsQuery = "SELECT IndustrialPlantName,Latitude,Longtitude FROM [mlpdm-168115:FleetMaintainance.DeviceSensorReadings] where IndustrialPlantName is not null and PredictedDate >  DATETIME(\""+fromDate+"\")  group by  \n" +
                 "IndustrialPlantName,Latitude,Longtitude\n";
         return fetchIndustrialPlantsQuery;
     }
 
-    private static String fetchDeviceAndLatestPreditionsQuery(String industrialPlantName) {
-        String fetchIndustrialPlantsQuery = "SELECT UnitNumber,RemainingOperationCycles from (SELECT PredictedDate,RemainingOperationCycles,IndustrialPlantName\n" +
-                " from [mlpdm-168115:FleetMaintainance.DeviceSensorReadings] where IndustrialPlantName like '"+industrialPlantName+"') FirstTable JOIN \n" +
-                "(SELECT Max(PredictedDate) AS latest,UnitNumber\n" +
+    private static String fetchDeviceAndLatestPreditionsQuery(String industrialPlantName,double latitude,double longtitude,String fromDate) {
+        String fetchIndustrialPlantsQuery = "SELECT UnitNumber,RemainingOperationCycles from (SELECT   RemainingOperationCycles,Cycle,UnitNumber as deviceId,IndustrialPlantName as plant from [mlpdm-168115:FleetMaintainance.DeviceSensorReadings]  where IndustrialPlantName like '"+industrialPlantName+"' AND Latitude=" + latitude + " AND Longtitude=" + longtitude + " and PredictedDate >  DATETIME(\"" + fromDate + "\") \n)  FirstTable JOIN (SELECT Max(Cycle) AS MaxCycle,UnitNumber,IndustrialPlantName\n" +
                 "FROM \n" +
                 "[mlpdm-168115:FleetMaintainance.DeviceSensorReadings]\n" +
-                "WHERE PredictedDate is NOT NULL AND IndustrialPlantName like '"+industrialPlantName+"'\n" +
-                "group by UnitNumber) \n" +
-                "SecondTable\n" +
-                "on SecondTable.latest = FirstTable.PredictedDate ";
+                "WHERE Cycle is NOT NULL AND IndustrialPlantName like '"+industrialPlantName+"' AND Latitude="+latitude+" AND Longtitude="+longtitude+" and PredictedDate >  DATETIME(\"" + fromDate + "\")\n" +
+                "group by UnitNumber,IndustrialPlantName ) SecondTable \n" +
+                "on FirstTable.deviceId = SecondTable.UnitNumber AND  FirstTable.plant = SecondTable.IndustrialPlantName AND FirstTable.Cycle=SecondTable.MaxCycle\n";
+        System.out.println(fetchIndustrialPlantsQuery);
         return fetchIndustrialPlantsQuery;
     }
 
 
-    public static HashMap<String, HashMap<String,Double>> getOilRigDeviceSensorReadings(String industrialPlantId,String deviceId) {
+    public static HashMap<String, HashMap<Long,Double>> getOilRigDeviceSensorReadings(String industrialPlantId,String deviceId, int durationInMins) {
         //query sensor readings for all sensors for the given device from big query table and fill the map
-        HashMap<String,HashMap<String,Double>> sensorsHistoryMap = new HashMap<String,HashMap<String,Double>>();
-        String sensorReadingsQuery = fetchSensorReadingsForDeviceQuery(industrialPlantId,deviceId);
+        HashMap<String,HashMap<Long,Double>> sensorsHistoryMap = new HashMap<String,HashMap<Long,Double>>();
+        String sensorReadingsQuery = fetchSensorReadingsForDeviceQuery(industrialPlantId,deviceId,getFromDate(durationInMins));
         Job sensorReadingsJob = createJob(sensorReadingsQuery, bigQueryClient);
         waitForJobCompletion(sensorReadingsJob);
         QueryResponse response = bigQueryClient.getQueryResults(sensorReadingsJob.getJobId());
         QueryResult result = processResponseAndGetResult(response);
         Iterator<List<FieldValue>> rowItr = result.iterateAll().iterator();
-        HashMap<String, Double> sensorReadingsOverTimeMapForSensorOne = new HashMap<String, Double>();
-        HashMap<String, Double> sensorReadingsOverTimeMapForSensorTwo = new HashMap<String, Double>();
-        HashMap<String, Double> sensorReadingsOverTimeMapForSensorThree = new HashMap<String, Double>();
-        HashMap<String, Double> sensorReadingsOverTimeMapForSensorFour = new HashMap<String, Double>();
+        HashMap<Long, Double> sensorReadingsOverTimeMapForSensorOne = new HashMap<Long, Double>();
+        HashMap<Long, Double> sensorReadingsOverTimeMapForSensorTwo = new HashMap<Long, Double>();
+        HashMap<Long, Double> sensorReadingsOverTimeMapForSensorThree = new HashMap<Long, Double>();
+        HashMap<Long, Double> sensorReadingsOverTimeMapForSensorFour = new HashMap<Long, Double>();
 
 
         while (rowItr.hasNext()) {
             List<FieldValue> columns = rowItr.next();
-            String time = "";
+            long time = 0;
             for (int loopCount = 0; loopCount < columns.size(); loopCount++) {
                 if(loopCount == 0) {
-                    time = ""+columns.get(loopCount).getStringValue();
+                    time = columns.get(loopCount).getLongValue();
                 }
                 else{
                     if(loopCount == 1) {
+                        if(!sensorReadingsOverTimeMapForSensorOne.containsKey(time))
                         sensorReadingsOverTimeMapForSensorOne.put(time,columns.get(loopCount).getDoubleValue());
                     }
                     else{
                         if(loopCount == 2) {
-                            sensorReadingsOverTimeMapForSensorTwo.put(time,columns.get(loopCount).getDoubleValue());
+                            if(!sensorReadingsOverTimeMapForSensorTwo.containsKey(time))
+                                sensorReadingsOverTimeMapForSensorTwo.put(time,columns.get(loopCount).getDoubleValue());
                         }
                         else{
                             if(loopCount == 3) {
-                                sensorReadingsOverTimeMapForSensorThree.put(time,columns.get(loopCount).getDoubleValue());
+                                if(!sensorReadingsOverTimeMapForSensorThree.containsKey(time))
+                                    sensorReadingsOverTimeMapForSensorThree.put(time,columns.get(loopCount).getDoubleValue());
                             }
                             else{
                                 if(loopCount == 4) {
-                                    sensorReadingsOverTimeMapForSensorFour.put(time,columns.get(loopCount).getDoubleValue());
+                                    if(!sensorReadingsOverTimeMapForSensorFour.containsKey(time))
+                                        sensorReadingsOverTimeMapForSensorFour.put(time,columns.get(loopCount).getDoubleValue());
                                 }
                             }
                         }
@@ -238,24 +241,25 @@ public class OilRigsDevicesManager {
         }
 
         sensorsHistoryMap.put("SensorMeasure2",sensorReadingsOverTimeMapForSensorOne);
-        sensorsHistoryMap.put("SensorMeasure3",sensorReadingsOverTimeMapForSensorTwo);
-        sensorsHistoryMap.put("SensorMeasure4",sensorReadingsOverTimeMapForSensorThree);
-        sensorsHistoryMap.put("SensorMeasure7",sensorReadingsOverTimeMapForSensorFour);
+        sensorsHistoryMap.put("SensorMeasure4",sensorReadingsOverTimeMapForSensorTwo);
+        sensorsHistoryMap.put("SensorMeasure9",sensorReadingsOverTimeMapForSensorThree);
+        sensorsHistoryMap.put("SensorMeasure11",sensorReadingsOverTimeMapForSensorFour);
 
 
         return sensorsHistoryMap;
     }
 
-    private static String fetchSensorReadingsForDeviceQuery(String industrialPlantId, String deviceId) {
-        String sensorReadingsForDeviceQuery = "SELECT PredictedDate,SensorMeasure2,SensorMeasure3,SensorMeasure4,SensorMeasure7 FROM [mlpdm-168115:FleetMaintainance.DeviceSensorReadings] where IndustrialPlantName like '"+industrialPlantId+"' and\n" +
-                "UnitNumber like '"+deviceId+"'";
+    private static String fetchSensorReadingsForDeviceQuery(String industrialPlantId, String deviceId,String fromDate) {
+        String sensorReadingsForDeviceQuery = "SELECT Cycle,SensorMeasure2,SensorMeasure4,SensorMeasure9,SensorMeasure11 FROM [mlpdm-168115:FleetMaintainance.DeviceSensorReadings] where IndustrialPlantName like '"+industrialPlantId+"' and\n" +
+                "UnitNumber like '"+deviceId+"'  and PredictedDate >  DATETIME(\"" + fromDate + "\")  order by Cycle desc" ;
         return sensorReadingsForDeviceQuery;
     }
 
-    public static ArrayList<Device> getDevicesLifeCyclePredictions(String industrialPlantId) {
+
+    public static ArrayList<Device> getDevicesLifeCyclePredictions(String industrialPlantId,double latitude,double longtitude, int durationInMins) {
         //query bigquery table for the given oilrigId and get list of devices and its latest predictions
        ArrayList<Device> deviceList= new ArrayList<Device>();
-        String deviceAndPredictionsQuery = fetchDeviceAndLatestPreditionsQuery(industrialPlantId);
+        String deviceAndPredictionsQuery = fetchDeviceAndLatestPreditionsQuery(industrialPlantId,latitude,longtitude,getFromDate(durationInMins));
         Job deviceAndPredictionsJob = createJob(deviceAndPredictionsQuery, bigQueryClient);
         waitForJobCompletion(deviceAndPredictionsJob);
         QueryResponse response = bigQueryClient.getQueryResults(deviceAndPredictionsJob.getJobId());
@@ -297,4 +301,7 @@ public class OilRigsDevicesManager {
         return bigQueryClient;
     }
 
+    private static String getFromDate(int durationInMins){
+        return LocalDateTime.now().minusMinutes(durationInMins).toString();
+    }
 }

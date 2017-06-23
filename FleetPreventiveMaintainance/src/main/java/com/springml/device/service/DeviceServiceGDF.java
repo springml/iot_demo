@@ -49,8 +49,11 @@ public class DeviceServiceGDF {
 
     private static TableSchema getDeviceSensorReadingsSchema() {
         List<TableFieldSchema> fields = new ArrayList<>();
-        fields.add(new TableFieldSchema().setName("UnitNumber").setType("FLOAT"));
-        fields.add(new TableFieldSchema().setName("Cycle").setType("FLOAT"));
+        fields.add(new TableFieldSchema().setName("IndustrialPlantName").setType("STRING"));
+        fields.add(new TableFieldSchema().setName("Latitude").setType("FLOAT"));
+        fields.add(new TableFieldSchema().setName("Longtitude").setType("FLOAT"));
+        fields.add(new TableFieldSchema().setName("UnitNumber").setType("STRING"));
+        fields.add(new TableFieldSchema().setName("Cycle").setType("INTEGER"));
         fields.add(new TableFieldSchema().setName("SensorMeasure19").setType("FLOAT"));
         fields.add(new TableFieldSchema().setName("SensorMeasure18").setType("FLOAT"));
         fields.add(new TableFieldSchema().setName("SensorMeasure17").setType("FLOAT"));

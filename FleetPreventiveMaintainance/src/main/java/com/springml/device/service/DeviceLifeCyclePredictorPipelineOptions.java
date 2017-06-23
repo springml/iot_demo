@@ -25,14 +25,14 @@ public interface DeviceLifeCyclePredictorPipelineOptions extends DataflowPipelin
     void setSourceTopic(String value);
 
     @Description("subscription")
-    @Default.String("TestSubscription")
+    @Default.String("IOTIOT_Predictive_Maintainance_Subscription")
     @Validation.Required
     String getSubscriptionName();
 
     void setSubscriptionName(String value);
 
     @Description("Fleet Preventive Maintance ML url")
-    @Default.String("https://ml.googleapis.com/v1beta1/projects/mlpdm-168115/models/predictivemaintenance_v3/versions/v3:predict")
+    @Default.String("https://ml.googleapis.com/v1beta1/projects/mlpdm-168115/models/predictivemaintenance_v5/versions/v5:predict")
     @Validation.Required
     String getFleetPreventMLUrl();
 

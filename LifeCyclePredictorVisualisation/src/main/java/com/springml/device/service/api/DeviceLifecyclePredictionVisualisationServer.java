@@ -18,23 +18,24 @@ public class DeviceLifecyclePredictionVisualisationServer {
 
 
 
-    public DevicesLifeCyclePredictionResponse getDeviceLifecyclePredictions(String oilRigId) {
+    public DevicesLifeCyclePredictionResponse getDeviceLifecyclePredictions(String oilRigId,double latitude,double longtitude, int durationInMins) {
         DevicesLifeCyclePredictionResponse devicesLifeCyclePredictionResponse = new DevicesLifeCyclePredictionResponse();
-        devicesLifeCyclePredictionResponse.setResponse(OilRigsDevicesManager.getDevicesLifeCyclePredictions(oilRigId));
+        devicesLifeCyclePredictionResponse.setResponse(OilRigsDevicesManager.getDevicesLifeCyclePredictions(oilRigId,latitude,longtitude,durationInMins));
         return devicesLifeCyclePredictionResponse;
 
     }
 
-    public DeviceSensorReadingsOverTimeResponse getSensorReadingsForDevice(String industrialPlantId,String deviceId) {
+    public DeviceSensorReadingsOverTimeResponse getSensorReadingsForDevice(String industrialPlantId,String deviceId, int durationInMins) {
+        System.out.println("industrial plant name is"+industrialPlantId);
         DeviceSensorReadingsOverTimeResponse deviceSensorReadingsOverTimeResponse = new DeviceSensorReadingsOverTimeResponse();
 
-        deviceSensorReadingsOverTimeResponse.setDeviceSensorReadings(OilRigsDevicesManager.getOilRigDeviceSensorReadings(industrialPlantId,deviceId));
+        deviceSensorReadingsOverTimeResponse.setDeviceSensorReadings(OilRigsDevicesManager.getOilRigDeviceSensorReadings(industrialPlantId,deviceId,durationInMins));
         return deviceSensorReadingsOverTimeResponse;
     }
 
-    public OilRigsResponse getOilRigs(){
+    public OilRigsResponse getOilRigs( int durationInMins){
         OilRigsResponse oilRigsResponse = new OilRigsResponse();
-        ArrayList<OilRig> oilrigs = OilRigsDevicesManager.getOilRigs();
+        ArrayList<OilRig> oilrigs = OilRigsDevicesManager.getOilRigs(durationInMins);
         oilRigsResponse.setOilRigs(oilrigs);
         return oilRigsResponse;
     }
@@ -43,17 +44,17 @@ public class DeviceLifecyclePredictionVisualisationServer {
         DeviceLifecyclePredictionVisualisationServer deviceLifecyclePredictionVisualisationServer = new DeviceLifecyclePredictionVisualisationServer();
         Gson gson = new Gson();
 
-     /*   ArrayList<OilRig> oilRigs = OilRigsDevicesManager.getOilRigs();
+        ArrayList<OilRig> oilRigs = OilRigsDevicesManager.getOilRigs(12*60);
         for(OilRig oilRig: oilRigs) {
-            DevicesLifeCyclePredictionResponse response = deviceLifecyclePredictionVisualisationServer.getDeviceLifecyclePredictions(oilRig.getName());
+            DevicesLifeCyclePredictionResponse response = deviceLifecyclePredictionVisualisationServer.getDeviceLifecyclePredictions(oilRig.getName(),oilRig.getLatitude(),oilRig.getLongtitude(),720);
 
             String jsonResponse = gson.toJson(response, DevicesLifeCyclePredictionResponse.class);
             System.out.println("The oil rig returned is "+oilRig.getName() +"and its device list and RULS are "+jsonResponse);
-        }*/
+        }
 
-        DeviceSensorReadingsOverTimeResponse deviceSensorReadingsOverTimeResponse = deviceLifecyclePredictionVisualisationServer.getSensorReadingsForDevice("IndustrialPlant0","Unit_1");
-        String sensorReadingsResponse = gson.toJson(deviceSensorReadingsOverTimeResponse,DeviceSensorReadingsOverTimeResponse.class);
-        System.out.println("The sensor readings for the device passed is"+ sensorReadingsResponse);
+  //      DeviceSensorReadingsOverTimeResponse deviceSensorReadingsOverTimeResponse = deviceLifecyclePredictionVisualisationServer.getSensorReadingsForDevice("IndustrialPlant0","Unit_1");
+    //    String sensorReadingsResponse = gson.toJson(deviceSensorReadingsOverTimeResponse,DeviceSensorReadingsOverTimeResponse.class);
+      //  System.out.println("The sensor readings for the device passed is"+ sensorReadingsResponse);
 
 
     }
