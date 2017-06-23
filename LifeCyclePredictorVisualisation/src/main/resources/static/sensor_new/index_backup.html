@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Title of the document</title>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+<script type="text/javascript" src="js/jquery.maphilight.js"></script>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script src="http://maps.google.com/maps/api/js?sensor=false" type="text/javascript"></script>
+<script src="http://qtip2.com/v/stable/jquery.qtip.js"> </script>
+<link rel="stylesheet" type="text/css" href="http://qtip2.com/v/stable/jquery.qtip.css" />
+
+<script type="text/javascript">
+$(document).ready(function() {
+
+    function colorChange(data,id){
+	var fillcolor = '';
+	if(data.fillColor == 'ff0000'){
+	        setInterval(function() {colorRed(data,id)},300);
+	}
+	else{
+                setInterval(function() {colorGreen(data,id)},300);
+	}
+        /*$("#"+id).data('maphilight', {"stroke":0, "alwaysOn": true, "fillColor":fillcolor, "fillOpacity":1});
+	setInterval(function() {
+	      if(data.fillColor == 'ff0000')
+                fillcolor = '62ce54';
+	      else
+                fillcolor = 'ff0000';
+              $("#"+id).data('maphilight', {"stroke":0, "alwaysOn": true, "fillColor":fillcolor, "fillOpacity":1});
+	      colorChange(data,id);
+	},60);*/
+    }
+    function colorRed(data,id){
+	$("#"+id).data('maphilight', {"stroke":0, "alwaysOn": true, "fillColor":"ff0000", "fillOpacity":1});
+              colorChange(data,id);
+    }
+    function colorRed(data,id){
+        $("#"+id).data('maphilight', {"stroke":0, "alwaysOn": true, "fillColor":"62ce54", "fillOpacity":1});
+              colorChange(data,id);
+    }
+    $('.map').maphilight();
+    $('area').each(function () {
+        var elem = $(this),
+            map = elem.parent(),
+            image = $('img[usemap="#'+map.attr('name')+'"]');
+    	var data = $(this).data('maphilight') || {};
+	var fillcolor = data.fillColor;
+	if(fillcolor == 'ff0000'){
+
+        var circleid = $(this).attr('id');
+	    var interval = 60; // where X is your every X minutes
+            setInterval(function() {
+		colorChange(data,circleid);	
+	    }, 1000);
+	}
+	
+        elem.qtip({
+            content: {
+                text: elem.attr('alt'), // Attempt to grab content from #statesMap-<State> elements first
+                attr: 'alt' // No content? Grab the content from the 'alt' attribute
+            },
+            position: {
+                viewport: image
+            },
+            show: {
+                event: 'mouseover',
+                solo: true
+            },
+            hide: {
+                // Allow the user to hover on the tooltip
+                fixed: true,
+                delay: 200
+            },
+            style: {
+                classes: 'qtip-tipsy'
+	     }
+        });
+    });
+
+
+    var guageReading = [];
+    var guageSensors = [];
+    $('.circle').click(function(e) { 
+        e.preventDefault();
+	$("#chartType").css("display","block");
+	$("input:radio:first").prop("checked", true).trigger("click");
+        var titles = [];
+        var unit = 'Unit_1';
+	var max = 270;
+	var device = getUrlParameter('dev');
+	window.open("ChartIndexWithTimegraph.html?dev="+device+"&id="+e.target.id);
+        /*if(e.target.id == 'a'){
+                $("#head").html("Crown Block");
+		titles = ['Model41',"FP2000",'MLH','SPT'];
+                unit = 'Unit_0';
+        }
+        else if(e.target.id == 'o'){
+                titles = ['Model41',"IPIS",'MLH','811FM'];
+                $("#head").html("Traveling Block");
+                unit = 'Unit_1';
+		max = 210;
+        }
+        else if(e.target.id == 'n'){
+                titles = ['FP2000',"811FM",'Model41','MLH']
+                $("#head").html("Top Drive");
+                unit = 'Unit_0';
+        }
+	 var data = getSensorReadings(device,unit);
+
+	var chartData = [];
+
+	for (var i in data) {
+	    var item = data[i];
+	    var outer = [];
+	    if (typeof item === "object") {
+        	for (var j in item) {
+	            var temp = [];
+        	    var myitem = item[j];
+	            if (typeof myitem === "object") {
+        	        for(var k in myitem)
+                	   temp.push(myitem[k]);
+            	    }
+	            outer.push(item[j]);
+                }
+    	   }
+	   if (outer.length) {
+        	chartData.push(outer);
+    	   }
+	}
+        var cData = chartData[0];
+	var sensorChartdata = [];
+	for(var ind = 0; ind < cData.length; ind++){
+		var temp = $.map(cData[ind], function(value, index) {
+		    return [value];
+		});
+		sensorChartdata.push(temp);
+	}
+	for(var i=0;i<4;i++){
+	var title = titles[i];
+        var id = 'sensor'+(parseInt(i)+1);
+	var sensorReadings = [];
+	for(var jj =0; jj < sensorChartdata.length; jj++){
+		var datas1 = [];
+		var Header= ['Range', 'LifeCycleValue'];
+		datas1.push(Header);
+		for (var ii = 0; ii < sensorChartdata[jj].length; ii++) {
+		      var temp=[];
+	              var values1 = [ii+1,sensorChartdata[jj][ii]];      		
+		      datas1.push(values1);
+  		}
+		sensorReadings.push(datas1);
+		guageReading[jj] = datas1[datas1.length - 1];
+	  }
+	  if(i == 0){
+		       var chartdata1 = google.visualization.arrayToDataTable(sensorReadings[0]);	
+		       $("#sensor1").css("cssText","background:url('images/"+titles[i]+".png');background-repeat:no-repeat;backgroud-size:120px 150px;background-position:center;");
+       			google.charts.load('current', {'packages':['corechart']});
+	       		google.charts.setOnLoadCallback(function(){drawChart1(titles[0],chartdata1,"sensor1",max)});
+			guageSensors[0] = titles[0];
+		}
+	        else if(i == 1){
+		      var chartdata2 = google.visualization.arrayToDataTable(sensorReadings[1]);	
+         	      $("#sensor2").css("cssText","background:url('images/"+titles[i]+".png');background-repeat:no-repeat;backgroud-size:300px 200px;background-position:center;");
+       			google.charts.load('current', {'packages':['corechart']});
+	                google.charts.setOnLoadCallback(function(){drawChart1(titles[1],chartdata2,"sensor2",max)});
+        	}
+	        else if(i == 2){
+		       var chartdata3 = google.visualization.arrayToDataTable(sensorReadings[2]);	
+        	       $("#sensor3").css("cssText","background:url('images/"+titles[i]+".png');background-repeat:no-repeat;backgroud-size:300px 200px;background-position:center;");
+       			google.charts.load('current', {'packages':['corechart']});
+	                google.charts.setOnLoadCallback(function(){drawChart1(titles[2],chartdata3,"sensor3",max)});
+        	}
+	        else if(i == 3){
+		       var chartdata4 = google.visualization.arrayToDataTable(sensorReadings[3]);	
+        	       $("#sensor4").css("cssText","background:url('images/"+titles[i]+".png');background-repeat:no-repeat;backgroud-size:300px 200px;background-position:center;");
+       			google.charts.load('current', {'packages':['corechart']});
+	                google.charts.setOnLoadCallback(function(){drawChart1(titles[3],chartdata4,"sensor4",max)});
+        	}
+	}*/
+});
+
+      function drawChart1(title,data,id,max) {
+        var options = {
+	  backgroundColor: 'none',
+          title: title,
+          curveType: 'function',
+          legend: { position: 'bottom' },
+	  hAxis: {textStyle:{color: '#FFF'},
+		  maxValue: max },
+	  vAxis: {
+	    textStyle:{color: '#FFF'}
+	  }
+        };
+
+        var chart = new google.visualization.LineChart(document.getElementById(id));
+
+        chart.draw(data, options);
+      }
+
+      var getUrlParameter = function getUrlParameter(sParam) {
+	var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+        sURLVariables = sPageURL.split('&'),
+        sParameterName,
+        i;
+    	for (i = 0; i < sURLVariables.length; i++) {
+        	sParameterName = sURLVariables[i].split('=');
+	        if (sParameterName[0] === sParam) {
+        	    return sParameterName[1] === undefined ? true : sParameterName[1];
+        	}
+    	}
+      };
+
+         var deviceName = getUrlParameter('dev');
+	$("#img_desc").html(deviceName);        
+ 
+		
+	function getSensorReadings(device,unit){    
+        	var sensordata =  $.ajax({
+                	type: "GET",
+	                url:'http://localhost:8080/getSensorReadingsForDevice?deviceId='+unit+'&industrialPlantId='+device,
+        	        async: false
+	        }).responseText;
+        	var myObject = eval('(' + sensordata + ')');
+	        return myObject;
+     	}
+
+	$("input[name$='charttype']").click(function() {
+                var id = $(this).val();
+                $("div.chartcontent").hide();
+                $("#" + id).show();
+                google.charts.load('current', {
+                    'packages': ['gauge']
+                });
+		if(id == 'current')
+	              google.charts.setOnLoadCallback(drawGaugeChart);
+            });
+
+	    
+            function drawGaugeChart() {
+                var data = google.visualization.arrayToDataTable([
+                    ['Label', 'Value'],
+                    ['sensor1', guageReading[0][1]],
+                    ['sensor2', guageReading[1][1]],
+                    ['sensor2', guageReading[2][1]],
+                    ['sensor2', guageReading[3][1]]
+                ]);
+
+                var options = {
+                    redFrom: 90,
+                    redTo: 100,
+                    yellowFrom: 75,
+                    yellowTo: 90,
+                    minorTicks: 5
+                };
+                var chart = new google.visualization.Gauge(document.getElementById('current'));
+                chart.draw(data, options);
+            }
+
+});
+</script>
+</head>
+
+<!--
+<body style="background:black;color:white;">
+-->
+<body>
+<div class="main-container" style="max-height:1000px;">
+     <h1 style="text-align:center"> Life Cycle Predictions </h1><br>
+
+     <div style="width:30%;position:absolute;top:160px;left:270px;z-index:1000" id="pie-chart">
+            <div style="" id="piechart"> </div>
+     </div>
+     <div style="display:flex;" style="width:100%;">
+        <div style="margin-right:2%;">
+		<img src="images/oilrig1.jpg" width="550" height="650" class="map" usemap="#sensormap"/>
+		<h1 style="text-align:center;" id="img_desc"> </h1>
+		<h4 style="text-align:center;color:darkgreen;font-weight:bold"> A ---> Crown Block </h4>
+                <h4 style="text-align:center;color:darkgreen;font-weight:bold"> O --->  Traveling Block </h4>
+                <h4 style="text-align:center;color:darkgreen;font-weight:bold"> N ---> Top Drive  </h4>
+		
+	</div>
+        <div id="desc" style="width:70%;">
+             <div id="chartType" style="text-align:center;">
+                <input type="radio" name="charttype" checked value="historical"> Historical Value </input>
+                <input type="radio" name="charttype" value="current"> Current Value </input>
+	    </div>
+		<h3 id="head" style="text-align:center;"> </h3>
+                    <div id="historical" class="chartcontent" style="width:100%;">
+	        	<div id="sensor1" style=""> </div>
+	        	<div id="sensor2" style=""> </div>
+		        <div id="sensor3" style=""> </div>
+	        	<div id="sensor4" style=""> </div>
+		    </div>
+		    <div id="current" class="chartcontent" style="width:80%;display:none;padding:50px;">
+
+		    </div>
+        </div>
+     </div>
+</div>
+
+
+<map name="sensormap">
+    <area alt="Crown Block" shape="circle" coords="259,24,9.8" href="" class="circle" id="a" data-maphilight='{"alwaysOn": true,"stroke":false,"fillColor":"ff0000","fillOpacity":1}'/>
+    <area alt="Traveling Block" shape="circle" coords="256,283,9.8" href="" class="circle" id="o" data-maphilight='{"alwaysOn": true,"stroke":false,"fillColor":"62ce54","fillOpacity":1}'/>
+
+    <area alt="Top Drive" shape="circle" coords="255,311,9.8" href="" class="circle" id="n" data-maphilight='{"alwaysOn": true,"stroke":false,"fillColor":"62ce54","fillOpacity":1}'/>
+
+
+</map>
+
+<script>
+
+google.charts.load('current', {'packages':['corechart']});
+google.charts.setOnLoadCallback(function(){drawChart(50,30,20)});
+
+function drawChart(green,orange,red) {
+        var data = google.visualization.arrayToDataTable([
+                  ['Risk', 'Percentage'],
+                  ['Safe', green],
+                  ['Moderate Risk', orange],
+                  ['Risk', red],
+        ]);
+      
+        var options = {
+                 title: 'Percentage of risk',
+                 colors: ['green', 'orange', 'red'],
+                 is3D: true,
+		 backgroundColor: { fill:'transparent' }
+
+        };
+
+        var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+
+        chart.draw(data, options);
+}
+
+
+</script>
+</body>
+</html>

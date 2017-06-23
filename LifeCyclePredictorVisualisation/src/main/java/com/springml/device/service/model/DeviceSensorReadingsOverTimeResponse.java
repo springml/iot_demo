@@ -9,13 +9,13 @@ import java.util.HashMap;
  */
 public class DeviceSensorReadingsOverTimeResponse {
 
-    private HashMap<String,HashMap<String,Double>> deviceSensorReadings;
+    private HashMap<String,HashMap<Long,Double>> deviceSensorReadings;
 
-    public HashMap<String, HashMap<String, Double>> getDeviceSensorReadings() {
+    public HashMap<String, HashMap<Long, Double>> getDeviceSensorReadings() {
         return deviceSensorReadings;
     }
 
-    public void setDeviceSensorReadings(HashMap<String, HashMap<String, Double>> deviceSensorReadings) {
+    public void setDeviceSensorReadings(HashMap<String, HashMap<Long, Double>> deviceSensorReadings) {
         this.deviceSensorReadings = deviceSensorReadings;
     }
 

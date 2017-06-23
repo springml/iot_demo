@@ -80,6 +80,7 @@ public class DeviceLifeCyclePredictorMLTransormation extends DoFn<TableRow, Tabl
             }
             responseRow.set("RemainingOperationCycles", remainingOperationCycles);
             responseRow.set("PredictedDate",  LocalDateTime.now().toString());
+            //responseRow.set("_PARTITIONTIME",new Timestamp(System.currentTimeMillis()));
         } catch (Exception e) {
             responseRow.set("RemainingOperationCycles", -99999);
             responseRow.set("PredictedDate",  LocalDateTime.now());

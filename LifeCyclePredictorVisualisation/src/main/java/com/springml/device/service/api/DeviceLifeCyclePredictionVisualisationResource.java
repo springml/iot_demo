@@ -33,25 +33,25 @@ public class DeviceLifeCyclePredictionVisualisationResource {
     @CrossOrigin
     @RequestMapping(value = "/getDeviceLifecyclePredictions", method = RequestMethod.GET)
     public @ResponseBody
-    ResponseEntity<DevicesLifeCyclePredictionResponse> getDeviceLifecyclePredictions(@RequestParam String oilRigId) {
-        return ResponseEntity.ok(deviceLifecyclePredictionVisualisationServer.getDeviceLifecyclePredictions( oilRigId));
+    ResponseEntity<DevicesLifeCyclePredictionResponse> getDeviceLifecyclePredictions(@RequestParam String oilRigId,@RequestParam double latitude,@RequestParam double longtitude,@RequestParam int durationInMins) {
+        return ResponseEntity.ok(deviceLifecyclePredictionVisualisationServer.getDeviceLifecyclePredictions( oilRigId,latitude,longtitude,durationInMins));
     }
 
     @CrossOrigin
     @RequestMapping(value = "/getSensorReadingsForDevice", method = RequestMethod.GET)
     public @ResponseBody
-    ResponseEntity<DeviceSensorReadingsOverTimeResponse> getSensorReadingsForDevice(@RequestParam String industrialPlantId,@RequestParam String deviceId) {
+    ResponseEntity<DeviceSensorReadingsOverTimeResponse> getSensorReadingsForDevice(@RequestParam String industrialPlantId,@RequestParam String deviceId,@RequestParam int durationInMins) {
 
-        return ResponseEntity.ok(deviceLifecyclePredictionVisualisationServer.getSensorReadingsForDevice(industrialPlantId,deviceId));
+        return ResponseEntity.ok(deviceLifecyclePredictionVisualisationServer.getSensorReadingsForDevice(industrialPlantId,deviceId,durationInMins));
 
     }
 
     @CrossOrigin
     @RequestMapping(value = "/getOilRigs", method = RequestMethod.GET)
     public @ResponseBody
-    ResponseEntity<OilRigsResponse> getOilRigs() {
+    ResponseEntity<OilRigsResponse> getOilRigs(@RequestParam int durationInMins) {
 
-        return ResponseEntity.ok(deviceLifecyclePredictionVisualisationServer.getOilRigs());
+        return ResponseEntity.ok(deviceLifecyclePredictionVisualisationServer.getOilRigs(durationInMins));
 
     }
 }
