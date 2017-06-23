@@ -42,7 +42,7 @@ class Device(object):
 		self.sensor_trends = {}
 
 	def initialize_features(self):
-		with open("feature_distribution_0.json") as fp:
+		with open("feature_distribution.json") as fp:
 			data = fp.read()
 			text = data.encode('ascii', 'ignore')
 		self.sensor_trends = json.loads(text)
