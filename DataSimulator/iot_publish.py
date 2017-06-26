@@ -153,7 +153,7 @@ def parse_command_line_args():
 		help='Path to RS256 certificate file.')
 	parser.add_argument(
 		'--ca_certs',
-		default='roots.pem',
+		default='PemFiles/roots.pem',
 		help='CA root certificate. Get from https://pki.google.com/roots.pem')
 	parser.add_argument(
 		'--mqtt_bridge_hostname',
