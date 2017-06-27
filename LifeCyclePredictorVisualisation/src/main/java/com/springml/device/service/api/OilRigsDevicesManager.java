@@ -174,6 +174,7 @@ public class OilRigsDevicesManager {
     private static String generateIndustrialPlantsQuery(String fromDate) {
         String fetchIndustrialPlantsQuery = "SELECT IndustrialPlantName,Latitude,Longtitude FROM [mlpdm-168115:FleetMaintainance.DeviceSensorReadings] where IndustrialPlantName is not null and PredictedDate >  DATETIME(\""+fromDate+"\")  group by  \n" +
                 "IndustrialPlantName,Latitude,Longtitude\n";
+
         return fetchIndustrialPlantsQuery;
     }
 
@@ -184,7 +185,6 @@ public class OilRigsDevicesManager {
                 "WHERE Cycle is NOT NULL AND IndustrialPlantName like '"+industrialPlantName+"' AND Latitude="+latitude+" AND Longtitude="+longtitude+" and PredictedDate >  DATETIME(\"" + fromDate + "\")\n" +
                 "group by UnitNumber,IndustrialPlantName ) SecondTable \n" +
                 "on FirstTable.deviceId = SecondTable.UnitNumber AND  FirstTable.plant = SecondTable.IndustrialPlantName AND FirstTable.Cycle=SecondTable.MaxCycle\n";
-        System.out.println(fetchIndustrialPlantsQuery);
         return fetchIndustrialPlantsQuery;
     }
 
@@ -252,6 +252,7 @@ public class OilRigsDevicesManager {
     private static String fetchSensorReadingsForDeviceQuery(String industrialPlantId, String deviceId,String fromDate) {
         String sensorReadingsForDeviceQuery = "SELECT Cycle,SensorMeasure2,SensorMeasure4,SensorMeasure9,SensorMeasure11 FROM [mlpdm-168115:FleetMaintainance.DeviceSensorReadings] where IndustrialPlantName like '"+industrialPlantId+"' and\n" +
                 "UnitNumber like '"+deviceId+"'  and PredictedDate >  DATETIME(\"" + fromDate + "\")  order by Cycle desc" ;
+        System.out.println(sensorReadingsForDeviceQuery);
         return sensorReadingsForDeviceQuery;
     }
 

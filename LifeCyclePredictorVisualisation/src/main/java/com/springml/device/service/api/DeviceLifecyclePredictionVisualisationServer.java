@@ -26,7 +26,6 @@ public class DeviceLifecyclePredictionVisualisationServer {
     }
 
     public DeviceSensorReadingsOverTimeResponse getSensorReadingsForDevice(String industrialPlantId,String deviceId, int durationInMins) {
-        System.out.println("industrial plant name is"+industrialPlantId);
         DeviceSensorReadingsOverTimeResponse deviceSensorReadingsOverTimeResponse = new DeviceSensorReadingsOverTimeResponse();
 
         deviceSensorReadingsOverTimeResponse.setDeviceSensorReadings(OilRigsDevicesManager.getOilRigDeviceSensorReadings(industrialPlantId,deviceId,durationInMins));
