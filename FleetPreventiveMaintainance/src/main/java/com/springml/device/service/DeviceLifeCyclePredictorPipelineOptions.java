@@ -25,7 +25,7 @@ public interface DeviceLifeCyclePredictorPipelineOptions extends DataflowPipelin
     void setSourceTopic(String value);
 
     @Description("subscription")
-    @Default.String("IOTIOT_Predictive_Maintainance_Subscription")
+    @Default.String("IOT")
     @Validation.Required
     String getSubscriptionName();
 
