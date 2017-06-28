@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title> Oil Rigs Life Cycle Prediction </title>
+    <meta name="viewport" content="initial-scale=1.0">
+    <meta charset="utf-8">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script src="js/Chart.min.js"></script>
+    <script src="js/gauge.min.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+    <style>
+        #map {
+            height: 250px;
+            width: 600px;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .sensorCurrentVal {
+        border: none;
+        font-family: 'Helvetica';
+        font-size: 20px;
+        overflow: visible;
+        width: 4em;
+        white-space: nowrap;
+        text-align: center;
+        position: absolute;
+        background-color: transparent;
+        left: 50%;
+        top: 64%;
+        transform: translate(-55%, -55%);
+    }
+    .rectangle-box-safe{
+        padding: 10px;
+        background-color: #62ce54;
+        font-family: Arial;
+    }
+
+    .rectangle-box-risk{
+        padding: 10px;
+        background-color: #fdd835;
+        font-family: Arial;
+    }
+
+    .rectangle-box-danger{
+        padding: 10px;
+        background-color: #ff0000;
+        font-family: Arial;
+    }
+
+    .divider-image{
+        background-color: black;
+        padding: 18px 4px;
+        height: 10px;
+        margin-left: 27%;
+    }
+    .rectangle-box-safe:hover{
+        background-color: #388e3c;
+        color: #ffffff;
+        font-weight: bold;
+    }
+
+    .rectangle-box-risk:hover{
+        background-color: #fbc02d;
+        color: #ffffff;
+        font-weight: bold;
+    }
+    .rectangle-box-danger:hover{
+        background-color: #e53935;
+        color: #ffffff;
+        font-weight: bold;
+    }
+    </style>
+    
+</head>
+<body style="background:#F2F2F2;">
+    <div class="main-container" style="padding:15px;height:100px;">
+	<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+	    	<div class="container-fluid">
+			<div class="navbar-header">
+		    	<a class="navbar-brand" style='color:white' href="./map.html">  Oil Rigs </a>
+			</div>
+		
+	    	</div>
+
+	</div>
+
+    <div id='sensorDetails' style='margin-top:4%;'>
+        
+    </div>
+
+    <div id='progress-bar' class='row col-md-12' style="margin-top: 1%">
+        <!--<img id='divider-image' src="images/divide-1.jpg">-->
+        <!--<span class="divider-image" style='font-size: 20px;background-color: black;padding-left:5px;height: 10px;'>|</span>-->
+        <div id='safe' class="col-md-2 rectangle-box-safe">
+            Safe <span id='safe-divider'></span>
+        </div>
+        <div id='risk' class="col-md-2 rectangle-box-risk">
+            Risk <span id='risk-divider'></span>
+        </div>
+        <div id='danger' class="col-md-2 rectangle-box-danger">
+            Danger <span id='danger-divider'></span>
+        </div>
+    </div>
+
+    <div style="display:flex;height:350px;margin-bottom:1%;margin-top:6%;font-size:14px;" class="row">
+            <div style="width:25%" id="donutOne" class="donutChart col-sm-3">
+        <canvas id="donut1" width=300 height=250></canvas>
+        <div id="sensor1Val" class='sensorCurrentVal' style="font-size:18px;"/></div>
+            </div>
+            <div style="width:25%;" id="donutTwo" class="donutChart col-sm-3">
+        <canvas id="donut2" width=300 height=250></canvas>
+        <div id="sensor2Val" class='sensorCurrentVal' style="font-size:18px;" /></div>
+            </div>
+            <div class="donutChart col-sm-3" style="width:25%;" id="donutThree">
+        <canvas id="donut3" width=300 height=250></canvas>
+        <div id="sensor3Val" class='sensorCurrentVal' style="font-size:18px;" /></div>
+            </div>
+            <div style="width:25%;" class="donutChart col-sm-3" id="donutFour">
+        <canvas id="donut4" width=300 height=250></canvas>
+        <div id="sensor4Val" class='sensorCurrentVal' style="font-size:18px;" /></div>
+            </div>
+
+    </div>
+
+	<div class="row">
+            <div class="col-md-12" style="display:flex;">
+		<div class="panel panel-default" style="width:50%;margin-right:1%;">
+                        <div class="panel-body">
+		                <div class="sensor" id="sensorContainer1">
+				<canvas id="sensor1"></canvas>
+                
+				</div>
+
+			</div>
+		</div>
+		<div class="panel panel-default" style="width:50%;">
+                        <div class="panel-body">
+		                <div class="sensor" id="sensorContainer2">
+                		<canvas id="sensor2"></canvas>
+				</div>
+			</div>
+		</div>    
+           </div>
+	   <div class="col-md-12" style="display:flex;" >
+		<div class="panel panel-default" style="width:50%;margin-right:1%;">
+                        <div class="panel-body">
+		                <div class="sensor" id="sensorContainer3">
+				<canvas id="sensor3"></canvas>
+				</div>    
+                        </div>   
+                </div>
+		<div class="panel panel-default" style="width:50%;">
+                        <div class="panel-body">
+		                <div class="sensor" id="sensorContainer4">
+ 				<canvas id="sensor4"></canvas>               	
+				</div>    
+                        </div>       
+                </div>
+           </div>
+	</div>
+  </div>
+
+
+  <script>
+     
+  $(document).ready(function(){
+	var sensorThresholds = [643,46,9000,1400];
+
+      var device = getUrlParameter('dev');
+      var id = getUrlParameter('id');
+      var rulVal = getUrlParameter('rulValue');
+
+      if( id == 'a')
+        deviceTitle = 'Crown Block';
+      else if( id == 'o')
+        deviceTitle = 'Traveling Block';
+      else 
+        deviceTitle = 'Top Drive';
+      $("#sensorDetails").html( '<b>' +deviceTitle +'</b> : ' + rulVal);
+     
+
+     //Divider
+
+      if(rulVal > 60){
+        $("#safe-divider").addClass('divider-image');
+      }else if( rulVal < 60 && rulVal > 0){
+        $("#risk-divider").addClass('divider-image');
+      }else{
+        $("#danger-divider").addClass('divider-image');
+      }
+
+      
+    function showCharts(device,id){
+	var guageReading = [];
+ 	var titles = [];
+        var unit = 'Unit_1';
+        if(id == 'a'){
+                $("#head").html("Crown Block");
+                titles = ['Cable Tension',"Differential Pressure",'Oil Temperature','Viscosity'];
+                unit = 'Unit_0';
+        }
+        else if(id == 'o'){
+                titles = ['Cable Tension',"Differential Pressure",'Oil Temperature','Viscosity'];
+                $("#head").html("Traveling Block");
+                unit = 'Unit_1';
+        }
+        else if(id == 'n'){
+                titles = ['Cable Tension',"Differential Pressure",'Oil Temperature','Viscosity'];
+                $("#head").html("Top Drive");
+                unit = 'Unit_0';
+        }
+    var data = getSensorReadings(device,unit);
+	var chartData = [];
+		var sensor_titles = [];
+        for (var i in data) {
+            var item = data[i];
+            var outer = [];
+
+            if (typeof item === "object") {
+                for (var j in item) {
+			sensor_titles.push(j);
+                    var temp = [];
+                    var myitem = item[j];
+                    if (typeof myitem === "object") {
+                        for(var k in myitem)
+                           temp.push(myitem[k]);
+                    }
+                    outer.push(item[j]);
+                }
+           }
+           if (outer.length) {
+                chartData.push(outer);
+           }
+        }
+
+        var cData = chartData[0];
+        var sensorChartdata = [];
+	    var sensorChartXAxisData = [];
+        for(var ind = 0; ind < cData.length; ind++){
+                var temp = $.map(cData[ind], function(value, index) {
+                    return [value];
+                });
+		var xAxisVal = $.map(cData[ind], function(value, index) {
+                    return [index];
+                });
+                sensorChartdata.push(temp);
+		sensorChartXAxisData.push(xAxisVal);
+        }
+		var latestVal = [];
+        for(var i=0;i<sensorChartdata.length;i++){
+		var sensorarray = sensorChartdata[i];
+		var sensorXAxisarray = sensorChartXAxisData[i];
+	    var title = sensor_titles[i];
+        var id = 'sensor'+(parseInt(i)+1);
+	    var sensorReadings = [];
+		var sensorReadingsForChartJs = [];
+
+		var cyclesForChartJS = [];
+        	for(var jj =0; jj < sensorarray.length; jj++){
+                	
+				cyclesForChartJS.push(sensorXAxisarray[jj]);
+				 sensorReadingsForChartJs.push( sensorChartdata[i][jj]);                  
+                	      
+			if(jj==(sensorChartdata.length-1)){
+
+				latestVal[i]=sensorChartdata[i][jj];   
+			}               
+       		}
+       		if(i == 0){
+                       $("#sensor1").css("cssText","background:url('images/"+titles[i]+".png');background-repeat:no-repeat;backgroud-size:120px 150px;background-position:center;");
+		        drawLineGraphForSensors(titles[0],cyclesForChartJS,sensorReadingsForChartJs,"sensor1","#B3E5FC");
+
+			google.charts.load('current', {'packages':['corechart']});
+			google.charts.setOnLoadCallback(function(){drawGaugeChartUsingChartJS(titles[0],"donut1",latestVal[0], 641.21, 644.53,getSensorColor(1,latestVal[0]),"#B3E5FC")});
+                }
+                else if(i == 1){
+                      $("#sensor2").css("cssText","background:url('images/"+titles[i]+".png');background-repeat:no-repeat;backgroud-size:300px 200px;background-position:center;");
+    
+						drawLineGraphForSensors(titles[1],cyclesForChartJS,sensorReadingsForChartJs,"sensor2","#B2EBF2");			
+			google.charts.load('current', {'packages':['corechart']});
+                        google.charts.setOnLoadCallback(function(){drawGaugeChartUsingChartJS(titles[1],"donut2",latestVal[1],46.85,48.53,getSensorColor(2,latestVal[1]),"#B2EBF2")});
+                }
+                else if(i == 2){
+                       $("#sensor3").css("cssText","background:url('images/"+titles[i]+".png');background-repeat:no-repeat;backgroud-size:300px 200px;background-position:center;");
+				drawLineGraphForSensors(titles[2],cyclesForChartJS,sensorReadingsForChartJs,"sensor3","#B2DFDB");                       
+			google.charts.load('current', {'packages':['corechart']});
+                        google.charts.setOnLoadCallback(function(){drawGaugeChartUsingChartJS(titles[2],"donut3",latestVal[2], 9021.73, 9244.59,getSensorColor(3,latestVal[2]),"#B2DFDB")});
+                }
+                else if(i == 3){
+                       $("#sensor4").css("cssText","background:url('images/"+titles[i]+".png');background-repeat:no-repeat;backgroud-size:300px 200px;background-position:center;");
+			drawLineGraphForSensors(titles[3],cyclesForChartJS,sensorReadingsForChartJs,"sensor4","#FDD835");  
+			google.charts.load('current', {'packages':['corechart']});
+                        google.charts.setOnLoadCallback(function(){drawGaugeChartUsingChartJS(titles[3],"donut4",latestVal[3],1382.25, 1441.49,getSensorColor(4,latestVal[3]),"#FDD835")});
+                }
+	cyclesForChartJS = [];
+	sensorReadingsForChartJs = [];
+         }
+
+     }
+    function getSensorColor(sensorId,curReading){
+	if(sensorThresholds[sensorId-1]<curReading)
+	return "#FA0000";
+	else
+	return "#006400";
+   }
+    function drawChart1(title,data,id) {
+          var options = {
+	       backgroundColor: 'none',
+	       title: title,
+	       curveType: 'function',
+	       legend: { position: 'bottom' },
+         };
+         var chart = new google.visualization.LineChart(document.getElementById(id));
+         chart.draw(data, options);
+    }
+  
+    
+    function drawGaugeChartUsingChartJS(title,id,donutvalue,Min_value,Max_value,hoverbgcolour,bgcolour){
+        donutvalue = Math.round(donutvalue);
+        var donutmin = Min_value + ((Max_value - Min_value)/1.5);
+        if( id == 'donut1')
+        $("#sensor1Val").html("<br>"+donutvalue+ "<br>" + title);
+        else if( id == 'donut2')
+        $("#sensor2Val").html("<br>"+donutvalue+ "<br>" + title);
+        else if( id == 'donut3')
+        $("#sensor3Val").html("<br>"+donutvalue+ "<br>" + title);
+        else
+        $("#sensor4Val").html("<br><br>"+donutvalue+ "<br>" + title);
+        var opts = {
+            angle: -0.15, // The span of the gauge arc
+            lineWidth: 0.34, // The line thickness
+            radiusScale: 1, // Relative radius
+            pointer: {
+                length: 0.63, // // Relative to gauge radius
+                strokeWidth: 0.046, // The thickness
+                color: '#000000' // Fill color
+            },
+            limitMax: 'false',
+            limitMin: 'true',
+                 // If true, the min value of the gauge will be fixed unless you set it manually
+            staticZones: [
+                {strokeStyle: "#62ce54", min: Min_value, max: donutmin}, // Red from 100 to 130
+                {strokeStyle: "#FF0000", min: donutmin, max: Max_value},
+            ],
+            colorStart: '#6FADCF',   // Colors
+            colorStop: '#8FC0DA',    // just experiment with them
+            strokeColor: '#E0E0E0',  // to see which ones work best for you
+            generateGradient: true,
+            highDpiSupport: true     // High resolution support
+        };
+        var target = document.getElementById(id); // your canvas element
+        var gauge = new Gauge(target).setOptions(opts); // create sexy gauge!
+        gauge.maxValue = Max_value; // set max gauge value
+        gauge.minValue = Min_value;  // Prefer setter over gauge.minValue = 0
+        gauge.animationSpeed = 5; // set animation speed (32 is default value)
+        gauge.set(donutvalue);
+    }
+
+
+    function drawDonutChartUsingChartJS(title,id,donutvalue,Max_value,hoverbgcolour,bgcolour){
+
+        var data1 = {
+            labels: [title],
+            datasets: [
+                {
+                    data: [donutvalue, Max_value - donutvalue ],
+                    backgroundColor: [
+                        bgcolour,
+                        "#D3D3D3"
+                    ],
+    		        hoverBackgroundColor: [
+                            hoverbgcolour,
+                            "#D3D3D3"
+                    ],
+                    borderWidth: [1, 1]
+                }
+            ]
+        };
+        donutvalue = Math.round(donutvalue);
+        if( id == 'donut1')
+        $("#sensor1Val").html(donutvalue);
+        else if( id == 'donut2')
+        $("#sensor2Val").html(donutvalue);
+        else if( id == 'donut3')
+        $("#sensor3Val").html(donutvalue);
+        else
+        $("#sensor4Val").html(donutvalue);
+
+    	var options = {
+            responsive: true,
+    	animation: {
+                    animateRotate: true,
+                    animateScale: true,
+                    animateRotate : true,
+            }, 
+    	rotation: 3/4 * Math.PI,
+            circumference: (3/2) * Math.PI, 
+            title: {
+                display: true,
+                position: "centre",
+                text: title,
+                fontSize: 18,
+                fontColor: "#111"
+            },
+            legend: {
+                display: true,
+                position: "bottom",
+                labels: {
+                    fontColor: "#333",
+                    fontSize: 16
+                }
+            }
+        };
+    	
+    	//create Chart class object
+        var chart1 = new Chart(id, {
+            type: "doughnut",
+            data: data1,
+            options: options
+        });
+
+}
+ 
+//Live Temp graph
+    function drawLineGraphForSensors(sensorName,cycles,readings,canvasId,bgcolor){
+     // get chart canvas
+    	var tempData = {
+                labels:cycles,
+                datasets: [
+                    {
+                        label: sensorName,
+                        fill: false,
+                        lineTension: 0.1,
+                        backgroundColor: bgcolor,
+                        borderColor: bgcolor,
+                        borderCapStyle: 'butt',
+                        borderDash: [],
+                        borderDashOffset: 0.0,
+                        borderJoinStyle: 'miter',
+                        pointBorderColor: "#b61827",
+                        pointBackgroundColor: "#fff",
+                        pointBorderWidth: 0,
+                        pointHoverRadius: 5,
+                        pointHoverBackgroundColor: "#b61827",
+                        pointHoverBorderColor: "rgba(220,220,220,1)",
+                        pointHoverBorderWidth: 2,
+                        pointRadius: 0,
+                        pointHitRadius: 10,
+                        data :readings ,
+                        spanGaps: false
+                    }
+                ]
+            };
+            var tempChart = new Chart(document.getElementById(canvasId), {
+                type: 'line',
+                data: tempData,
+                options: {
+                    tooltips: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    hover: {
+                        mode: 'nearest',
+                        intersect: true
+                    },
+		    scales: {
+		        xAxes: [{
+                		display: false
+            		}]
+        	    }
+                }
+            });
+    }     
+
+    function getUrlParameter(sParam) {
+        var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+        sURLVariables = sPageURL.split('&'),
+        sParameterName,
+        i;
+        for (i = 0; i < sURLVariables.length; i++) {
+                sParameterName = sURLVariables[i].split('=');
+                if (sParameterName[0] === sParam) {
+                    return sParameterName[1] === undefined ? true : sParameterName[1];
+                }
+        }
+   };
+  
+   function getSensorReadings(device,unit){ 
+	   var duration = 30;//in mins   
+                var sensordata =  $.ajax({
+                        type: "GET",
+                        url:'/getSensorReadingsForDevice?deviceId='+unit+'&industrialPlantId='+device+'&durationInMins='+ duration,
+                        async: false
+                }).responseText;
+                var myObject = eval('(' + sensordata + ')');
+                return myObject;
+   }
+
+
+	setInterval(function(){showCharts(device,id);},10000); // Time in milliseconds
+    showCharts(device,id);
+
+  });
+    </script>
+</body>
+</html>
