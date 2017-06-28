@@ -169,8 +169,13 @@ def close_client(client):
 	client.loop_stop()
 
 def setup_client_device(registry_id, device_id, unit_num, plant):
+	'''Creates a client which is a connection over MQTT for a device to a pubsub topic. 
+	   For each Device ID, creates a corresponding Device (Code Defined Class) which will simulate data for that particular Device ID 
+	'''
 
 	args = parse_command_line_args()
+	
+	device = Device(device_id, unit_num, plant)
 	
 	client = mqtt.Client(client_id='projects/{}/locations/{}/registries/{}/devices/{}'.format( \
 			args.project_id, args.cloud_region, registry_id, device_id))
@@ -183,7 +188,7 @@ def setup_client_device(registry_id, device_id, unit_num, plant):
 	#configures network encryption and authentication
 	client.tls_set(ca_certs=args.ca_certs)
 
-	device = Device(device_id, unit_num, plant)
+
 
 	client.on_connect = device.on_connect
 	client.on_publish = device.on_publish
@@ -202,6 +207,10 @@ def setup_client_device(registry_id, device_id, unit_num, plant):
 	return client, device
 	
 def get_plants_info(plants_info_dir, num_plants):
+	'''
+	Gets basic information (Name, Location, Units) on the Industrials Plants from a flat file specified in the command line.
+	This function then returns the Json with the basic info.
+	'''
 	with open(plants_info_dir) as fp:
 		data = fp.read()
 		text = data.encode('ascii', 'ignore')
@@ -214,15 +223,18 @@ def main():
 	registry_id = 'cloudiot_device_manager_registry_1497594495'
 	#registry_id = 'cloudiot_device_manager_registry_{}'.format(int(time.time()))
 
+	#Looking up already called registry based upon registry_id specified above
 	device_registry = DeviceRegistry( \
 		args.project_id, registry_id, args.cloud_region, \
 		args.service_account_json, args.api_key, args.pubsub_topic)
+
 
 	plants_info = get_plants_info(args.plants_info_dir, args.num_plants)
 
 	Clients = []
 	Devices = []
 
+	#Looping through all the plants and their corresponding units within a plant to generate devices and clients 
 	for plant in plants_info:
 		for unit_num in xrange(args.num_machines):
 			device_id = ''.join(random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ') for i in xrange(10))
@@ -231,9 +243,6 @@ def main():
 			Clients.append(client)
 			Devices.append(device)
 
-
-	
-	#Based upon # of devices specified in the command line, creating corresponding # of clients and device objects
 
 	max_device_time = max([Devices[i].device_time for i in xrange(len(Devices))])
 	
@@ -252,12 +261,10 @@ def main():
 			Clients[j].publish(Devices[j].mqtt_telemetry_topic, payload, qos=1)
 			time.sleep(.1)
 
-	print [(Devices[i].device_time,  Devices[i].device_id) for i in xrange(len(Devices))]
+	print [(Devices[i].device_time, Devices[i].unit, Devices[i].IndustrialPlant) for i in xrange(len(Devices))]
 
 	for client in Clients:
 		close_client(client)
-
-	print registry_id
 	
 	
 

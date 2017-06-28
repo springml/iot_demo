@@ -9,17 +9,7 @@ import math
 def load_data():
 	''' Takes Data from all csv files from CMAPPS dataset and loads into a dataframe'''
 
-	allFiles = ["data/CMAPSSData/train_FD001.txt", "data/CMAPSSData/train_FD002.txt", "data/CMAPSSData/train_FD003.txt", "data/CMAPSSData/train_FD004.txt", \
-            "data/CMAPSSData/test_FD001.txt", "data/CMAPSSData/test_FD002.txt", "data/CMAPSSData/test_FD003.txt", "data/CMAPSSData/test_FD004.txt"]
-	file_suffixes = ["_train_FD001", "_train_FD002", "_train_FD003", "_train_FD004", "_test_FD001", "_test_FD002", \
-               "_test_FD003", "_test_FD004"]
-	all_dfs = []
-	for i in xrange(len(allFiles)):
-		temp_df = pd.read_csv(allFiles[i], header=None, sep = ' ', index_col=False)
-		temp_df[0] =  temp_df[0].astype(str) + file_suffixes[i]
-		all_dfs.append(temp_df)
-
-	df = pd.concat(all_dfs, ignore_index=True)
+	df = pd.read_csv("data/CMAPSSData/train_FD001.txt", header=None, sep = ' ', index_col=False)
 
 	#changing column names to make them more human readable
 	col_names = ["unit", "time", "OpSet1", "OpSet2", "OpSet3"]
@@ -45,8 +35,8 @@ def generate_distribution_file(df):
 	for time in xrange(1, len(df_trends)):
 		for feature in features:
 			std = df_trends[feature]["std"][time]
-			if math.isnan(std):
-				std = 10
+			if math.isnan(std) or std == 0:
+				std = .01
 			feature_distribution[feature + "_" + str(time) + "_" + "mean"] = df_trends[feature]["mean"][time]
 			feature_distribution[feature + "_" + str(time) + "_" + "std"] = abs(std)
 	with open("feature_distribution.json", 'w') as fp:
