@@ -23,11 +23,14 @@ def load_data():
 def generate_distribution_file(df):
 
 	#group by functions to apply on all observational column in dataframe
-	gb_functions = { 'OpSet1': ['mean', 'std'], 'OpSet2'  : ['mean', 'std'], 'OpSet3'  : ['mean', 'std'],  'SensorMeasure1': ['mean', 'count', 'std'], 'SensorMeasure2': ['mean', 'std'], 'SensorMeasure3'  : ['mean', 'std'], 'SensorMeasure4'  : ['mean', 'std'], \
-	'SensorMeasure5'  : ['mean', 'std'], 'SensorMeasure6'  : ['mean', 'std'], 'SensorMeasure7'  : ['mean', 'std'], 'SensorMeasure8'  : ['mean', 'std'],  'SensorMeasure9'  : ['mean', 'std'], 'SensorMeasure10'  : ['mean', 'std'], 'SensorMeasure11'  : ['mean', 'std'], 'SensorMeasure12'  : ['mean', 'std'], \
+	gb_functions = { 'OpSet1': ['mean', 'std'], 'OpSet2'  : ['mean', 'std'], 'OpSet3'  : ['mean', 'std'],  'SensorMeasure1': ['mean', 'count', 'std'], 'SensorMeasure2': ['mean', 'std'], 'SensorMeasure3'  : ['mean', 'std'],  \
+	'SensorMeasure5'  : ['mean', 'std'], 'SensorMeasure6'  : ['mean', 'std'], 'SensorMeasure7'  : ['mean', 'std'], 'SensorMeasure8'  : ['mean', 'std'], 'SensorMeasure10'  : ['mean', 'std'],  'SensorMeasure12'  : ['mean', 'std'], \
 	'SensorMeasure13'  : ['mean', 'std'], 'SensorMeasure14'  : ['mean', 'std'], 'SensorMeasure15'  : ['mean', 'std'], 'SensorMeasure16'  : ['mean', 'std'],  'SensorMeasure17'  : ['mean', 'std'], 'SensorMeasure18'  : ['mean', 'std'], 'SensorMeasure19'  : ['mean', 'std'], 'SensorMeasure20'  : ['mean', 'std'], 'SensorMeasure21'  : ['mean', 'std']}
 
 	features = df.columns[2:].tolist()
+	features.remove('SensorMeasure4')
+	features.remove('SensorMeasure9')
+	features.remove('SensorMeasure11')
 
 	df_trends = df.groupby(['time']).agg(gb_functions)
 
@@ -39,7 +42,7 @@ def generate_distribution_file(df):
 				std = .01
 			feature_distribution[feature + "_" + str(time) + "_" + "mean"] = df_trends[feature]["mean"][time]
 			feature_distribution[feature + "_" + str(time) + "_" + "std"] = abs(std)
-	with open("feature_distribution.json", 'w') as fp:
+	with open("feature_distribution_demo.json", 'w') as fp:
 		json.dump(feature_distribution, fp)
 
 if __name__ == '__main__':

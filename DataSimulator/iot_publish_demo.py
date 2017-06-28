@@ -31,18 +31,18 @@ class Device(object):
 	def __init__(self, device_id, unit_num, plant):
 		
 		self.connected = False
-		self.features = ["OpSet1",  "OpSet2", "OpSet3", "SensorMeasure1", "SensorMeasure2", "SensorMeasure3", "SensorMeasure4", "SensorMeasure5", "SensorMeasure6", "SensorMeasure7", "SensorMeasure8", "SensorMeasure9", "SensorMeasure10", "SensorMeasure11", "SensorMeasure12", "SensorMeasure13", "SensorMeasure14", "SensorMeasure15", "SensorMeasure16", "SensorMeasure17", "SensorMeasure18", "SensorMeasure19", "SensorMeasure20", "SensorMeasure21"]
+		self.features = ["OpSet1",  "OpSet2", "OpSet3", "SensorMeasure1", "SensorMeasure2", "SensorMeasure3", "SensorMeasure4", "SensorMeasure5", "SensorMeasure6", "SensorMeasure7", "SensorMeasure8", "SensorMeasure9", "SensorMeasure10",  "SensorMeasure11", "SensorMeasure12", "SensorMeasure13", "SensorMeasure14", "SensorMeasure15", "SensorMeasure16", "SensorMeasure17", "SensorMeasure18", "SensorMeasure19", "SensorMeasure20", "SensorMeasure21"]
 		self.device_id = device_id
 		self.unit = "Unit_" + str(unit_num)
 		self.IndustrialPlant = plant["Name"]
 		self.latitude = plant["Latitude"]
 		self.longitude = plant["Longtitude"]
 		self.mqtt_telemetry_topic = '/devices/{}/events'.format(device_id)
-		self.device_time = abs(int(np.random.normal(206, 46)))
+		self.device_time = plant["UnitTimes"][unit_num]
 		self.sensor_trends = {}
 
 	def initialize_features(self):
-		with open("feature_distribution.json") as fp:
+		with open("feature_distribution_demo.json") as fp:
 			data = fp.read()
 			text = data.encode('ascii', 'ignore')
 		self.sensor_trends = json.loads(text)
@@ -56,8 +56,17 @@ class Device(object):
 		sensor_reading["UnitNumber"] = self.unit
 		sensor_reading["Cycle"] = cycle
 		for feature in self.features:
-			sensor_reading[feature] = abs(np.random.normal(self.sensor_trends[feature + "_" + str(cycle) + "_" + "mean"], \
+			if feature == "SensorMeasure4":
+				sensor_reading[feature] = (200.0*cycle/self.device_time) + 1250
+			elif feature == "SensorMeasure9":
+				sensor_reading[feature]  = (2000.0*cycle/self.device_time) + 7500
+			elif feature == "SensorMeasure11":
+				sensor_reading[feature] = (10.0*cycle/self.device_time) + 40
+			else:
+				sensor_reading[feature] = abs(np.random.normal(self.sensor_trends[feature + "_" + str(cycle) + "_" + "mean"], \
 							self.sensor_trends[feature + "_" + str(cycle) + "_" + "std"] ))
+
+
 		return json.dumps(sensor_reading)
 
 	def wait_for_connection(self, timeout):
@@ -141,12 +150,12 @@ def parse_command_line_args():
 		help='Path to service account json file.')
 	parser.add_argument(
 		'--plants_info_dir',
-		default = 'OilRigInfo.json',
+		default = 'OilRigInfoDemo.json',
 		help='Path to file about the various Industrial Plants')
 	parser.add_argument(
 		'--cloud_region', default='us-central1', help='GCP cloud region')
 	parser.add_argument('--num_plants', default=2, help='Number of Industrial Plants to simulate', type=int)
- 	parser.add_argument('--num_machines', default=2, help='Number of Machines on a Plant to Simulate', type=int)
+ 	parser.add_argument('--num_machines', default=3, help='Number of Machines on a Plant to Simulate', type=int)
 	parser.add_argument(
 		'--rsa_certificate_file',
 		default='rsa_cert.pem',
@@ -236,7 +245,7 @@ def main():
 
 	#Looping through all the plants and their corresponding units within a plant to generate devices and clients 
 	for plant in plants_info:
-		for unit_num in xrange(args.num_machines):
+		for unit_num in xrange(len(plant["UnitTimes"])):
 			device_id = ''.join(random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ') for i in xrange(10))
 			device_registry.create_device_with_rs256(device_id, args.rsa_certificate_file)
 			client, device = setup_client_device(registry_id, device_id, unit_num, plant)
