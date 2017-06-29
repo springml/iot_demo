@@ -81,10 +81,11 @@ public class DeviceLifeCyclePredictorMLTransormation extends DoFn<TableRow, Tabl
             responseRow.set("RemainingOperationCycles", remainingOperationCycles);
             responseRow.set("PredictedDate",  LocalDateTime.now().toString());
             //responseRow.set("_PARTITIONTIME",new Timestamp(System.currentTimeMillis()));
-        } catch (Exception e) {
+        } catch (Exception exc) {
             responseRow.set("RemainingOperationCycles", -99999);
-            responseRow.set("PredictedDate",  LocalDateTime.now());
-            LOG.info("Exception while parsing response" + e.getMessage().toString());
+            responseRow.set("PredictedDate",  LocalDateTime.now().toString());
+            LOG.info("Exception while parsing response" + exc.getMessage().toString());
+            throw exc;
         }
         return responseRow;
     }
@@ -129,7 +130,12 @@ public class DeviceLifeCyclePredictorMLTransormation extends DoFn<TableRow, Tabl
     public void processElement(ProcessContext c) throws Exception {
 
         TableRow tableRow = c.element();
-        c.output(getPredictedLifeCycle(tableRow));
+        try {
+            TableRow row = getPredictedLifeCycle(tableRow);
+            c.output(row);
+        }catch(Exception exc){
+            LOG.error("Exception while processing and hence not attempting to write to bigquery");
+        }
     }
 
     /*
@@ -150,9 +156,9 @@ public class DeviceLifeCyclePredictorMLTransormation extends DoFn<TableRow, Tabl
             return getTableRowFromResponse(predictionResponse, sensorDetails);
         } catch (Exception exc) {
             LOG.error("Error while getting predictions using CloudML", exc.getMessage());
+            throw exc;
         }
 
-        return responseRow;
     }
 
 

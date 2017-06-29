@@ -26,10 +26,8 @@ public class DeviceLifecyclePredictionVisualisationServer {
     }
 
     public DeviceSensorReadingsOverTimeResponse getSensorReadingsForDevice(String industrialPlantId,String deviceId, int durationInMins) {
-        DeviceSensorReadingsOverTimeResponse deviceSensorReadingsOverTimeResponse = new DeviceSensorReadingsOverTimeResponse();
 
-        deviceSensorReadingsOverTimeResponse.setDeviceSensorReadings(OilRigsDevicesManager.getOilRigDeviceSensorReadings(industrialPlantId,deviceId,durationInMins));
-        return deviceSensorReadingsOverTimeResponse;
+        return OilRigsDevicesManager.getOilRigDeviceSensorReadings(industrialPlantId,deviceId,durationInMins);
     }
 
     public OilRigsResponse getOilRigs( int durationInMins){

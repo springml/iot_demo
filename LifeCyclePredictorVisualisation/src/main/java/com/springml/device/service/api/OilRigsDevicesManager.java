@@ -3,6 +3,7 @@ package com.springml.device.service.api;
 import com.google.cloud.WaitForOption;
 import com.google.cloud.bigquery.*;
 import com.springml.device.service.model.Device;
+import com.springml.device.service.model.DeviceSensorReadingsOverTimeResponse;
 import com.springml.device.service.model.OilRig;
 
 import java.time.LocalDateTime;
@@ -189,9 +190,10 @@ public class OilRigsDevicesManager {
     }
 
 
-    public static HashMap<String, HashMap<Long,Double>> getOilRigDeviceSensorReadings(String industrialPlantId,String deviceId, int durationInMins) {
+    public static DeviceSensorReadingsOverTimeResponse getOilRigDeviceSensorReadings(String industrialPlantId,String deviceId, int durationInMins) {
         //query sensor readings for all sensors for the given device from big query table and fill the map
         HashMap<String,HashMap<Long,Double>> sensorsHistoryMap = new HashMap<String,HashMap<Long,Double>>();
+        Double latestRulVal = 0d;
         String sensorReadingsQuery = fetchSensorReadingsForDeviceQuery(industrialPlantId,deviceId,getFromDate(durationInMins));
         Job sensorReadingsJob = createJob(sensorReadingsQuery, bigQueryClient);
         waitForJobCompletion(sensorReadingsJob);
@@ -230,6 +232,13 @@ public class OilRigsDevicesManager {
                                 if(loopCount == 4) {
                                     if(!sensorReadingsOverTimeMapForSensorFour.containsKey(time))
                                         sensorReadingsOverTimeMapForSensorFour.put(time,columns.get(loopCount).getDoubleValue());
+
+                                }
+                                else{
+                                    if(loopCount==5){
+                                        if(!rowItr.hasNext())
+                                            latestRulVal = columns.get(loopCount).getDoubleValue();
+                                    }
                                 }
                             }
                         }
@@ -245,13 +254,16 @@ public class OilRigsDevicesManager {
         sensorsHistoryMap.put("SensorMeasure9",sensorReadingsOverTimeMapForSensorThree);
         sensorsHistoryMap.put("SensorMeasure11",sensorReadingsOverTimeMapForSensorFour);
 
+        DeviceSensorReadingsOverTimeResponse deviceSensorReadingsOverTimeResponse = new DeviceSensorReadingsOverTimeResponse();
 
-        return sensorsHistoryMap;
+        deviceSensorReadingsOverTimeResponse.setDeviceSensorReadings(sensorsHistoryMap);
+        deviceSensorReadingsOverTimeResponse.setLatestRulVal(latestRulVal);
+        return deviceSensorReadingsOverTimeResponse;
     }
 
     private static String fetchSensorReadingsForDeviceQuery(String industrialPlantId, String deviceId,String fromDate) {
-        String sensorReadingsForDeviceQuery = "SELECT Cycle,SensorMeasure2,SensorMeasure4,SensorMeasure9,SensorMeasure11 FROM [mlpdm-168115:FleetMaintainance.DeviceSensorReadings] where IndustrialPlantName like '"+industrialPlantId+"' and\n" +
-                "UnitNumber like '"+deviceId+"'  and PredictedDate >  DATETIME(\"" + fromDate + "\")  order by Cycle desc" ;
+        String sensorReadingsForDeviceQuery = "SELECT Cycle,SensorMeasure2,SensorMeasure4,SensorMeasure9,SensorMeasure11,RemainingOperationCycles FROM [mlpdm-168115:FleetMaintainance.DeviceSensorReadings] where IndustrialPlantName like '"+industrialPlantId+"' and\n" +
+                "UnitNumber like '"+deviceId+"'  and PredictedDate >  DATETIME(\"" + fromDate + "\")  order by Cycle" ;
         System.out.println(sensorReadingsForDeviceQuery);
         return sensorReadingsForDeviceQuery;
     }
