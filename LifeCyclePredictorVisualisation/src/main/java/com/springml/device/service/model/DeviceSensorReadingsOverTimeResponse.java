@@ -10,6 +10,15 @@ import java.util.HashMap;
 public class DeviceSensorReadingsOverTimeResponse {
 
     private HashMap<String,HashMap<Long,Double>> deviceSensorReadings;
+    private Double latestRulVal;
+
+    public Double getLatestRulVal() {
+        return latestRulVal;
+    }
+
+    public void setLatestRulVal(Double latestRulVal) {
+        this.latestRulVal = latestRulVal;
+    }
 
     public HashMap<String, HashMap<Long, Double>> getDeviceSensorReadings() {
         return deviceSensorReadings;
