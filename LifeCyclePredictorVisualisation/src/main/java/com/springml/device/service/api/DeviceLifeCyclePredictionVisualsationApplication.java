@@ -24,7 +24,12 @@ public class DeviceLifeCyclePredictionVisualsationApplication {
         return new DeviceLifecyclePredictionVisualisationServer();
     }
 
+
     @Bean
+    public OilRigsDevicesManager oilRigsDevicesManager() {
+        return new OilRigsDevicesManager();
+    }
+
     public FilterRegistrationBean corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
