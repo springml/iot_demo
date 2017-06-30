@@ -6,6 +6,7 @@ package com.springml.device.service.model;
 public class OilRig {
     String name;
     Double latitude;
+    Double Longtitude;
 
     public Double getLatitude() {
         return latitude;
@@ -31,6 +32,4 @@ public class OilRig {
     public void setName(String name) {
         this.name = name;
     }
-
-    Double Longtitude;
 }

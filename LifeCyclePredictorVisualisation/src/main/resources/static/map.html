@@ -13,56 +13,45 @@
     <script src="js/qtip.js"> </script>
     <link rel="stylesheet" type="text/css" href="css/qtip.css" />
     <style>
-
-        html,
-        body {
+        html,body {
             margin: 0;
             padding: 0;
             background:#F2F2F2;
 
         }
 
-    .loader {
-      border: 16px solid #f3f3f3;
-      border-radius: 50%;
-      border-top: 16px solid #3498db;
-      border-bottom: 16px solid #3498db;
-      width: 120px;
-      height: 120px;
-      -webkit-animation: spin 2s linear infinite;
-      -moz-animation: spin 2s linear infinite;
-      -ms-animation: spin 2s linear infinite;
-      -o-animation: spin 2s linear infinite;
-      animation: spin 2s linear infinite;
-      position: fixed;
-      top:30%;
-      left: 50%;
-      z-index: 1;
-    }
+        .loader {
+          border: 16px solid #f3f3f3;
+          border-radius: 50%;
+          border-top: 16px solid #3498db;
+          border-bottom: 16px solid #3498db;
+          width: 120px;
+          height: 120px;
+          -webkit-animation: spin 2s linear infinite;
+          -moz-animation: spin 2s linear infinite;
+          -ms-animation: spin 2s linear infinite;
+          -o-animation: spin 2s linear infinite;
+          animation: spin 2s linear infinite;
+          position: fixed;
+          top:30%;
+          left: 50%;
+          z-index: 1;
+        }
 
-    @-webkit-keyframes spin {
-      0% { -webkit-transform: rotate(0deg); }
-      100% { -webkit-transform: rotate(360deg); }
-    }
+        @-webkit-keyframes spin {
+          0% { -webkit-transform: rotate(0deg); }
+          100% { -webkit-transform: rotate(360deg); }
+        }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 
 <body>
     <div class="main-container" style="padding:0px 10px 10px;background:#F2F2F2;">
-
-        <!--<div class="navbar row" role="navigation" style='height: 68px;background-color: #1976d2;margin:0 1%'>
-            <div class="">
-                     <h1 class="text-center" style='color:white;'>  OilRig Life Cycle Predictions </h1>
-                
-            </div>
-        </div> -->
-
         <div class="navbar navbar-inverse navbar-fixed-top" role="navigation"> 
             <div class="container-fluid">
             	<div class="navbar-header">
@@ -100,246 +89,256 @@
 	   
 
         </div>
-    </div>
+    </div> <!-- Main container end -->
 
     <map name="sensormap">
-    <area alt="Crown Block" shape="circle" coords="259,24,9.8" href="" class="circle" id="a" data-maphilight='{"alwaysOn": false,"stroke":false,"fillColor":"62ce54","fillOpacity":1}'/>
-    <area alt="Traveling Block" shape="circle" coords="256,283,9.8" href="" class="circle" id="o" data-maphilight='{"alwaysOn": false,"stroke":false,"fillColor":"62ce54","fillOpacity":1}'/>
-
-    <area alt="Top Drive" shape="circle" coords="255,311,9.8" href="" class="circle" id="n" data-maphilight='{"alwaysOn": false,"stroke":false,"fillColor":"62ce54","fillOpacity":1}'/>
-
+        <area alt="Crown Block" shape="circle" coords="259,24,9.8" href="" class="circle" id="crown_block" data-maphilight='{"alwaysOn": false,"stroke":false,"fillColor":"62ce54","fillOpacity":1}'/>
+        <area alt="Traveling Block" shape="circle" coords="256,283,9.8" href="" class="circle" id="traveling_block" data-maphilight='{"alwaysOn": false,"stroke":false,"fillColor":"62ce54","fillOpacity":1}'/>
+        <area alt="Top Drive" shape="circle" coords="255,311,9.8" href="" class="circle" id="top_drive" data-maphilight='{"alwaysOn": false,"stroke":false,"fillColor":"62ce54","fillOpacity":1}'/>
     </map>
 
-        <script>
+    <script>
     	var deviceName;
     	var latitude;
     	var longtitude;
         var rulValues = [];
-            $(document).ready(function() {
+        var deviceone;
+        var devicetwo;
+        var devicethree;
 
-                var getOilRigs = function getOilRigs() {
-                    var map = new google.maps.Map(document.getElementById('map'), {
-                        zoom: 2,
-                        center: new google.maps.LatLng(27, -85),
-                        mapTypeId: google.maps.MapTypeId.ROADMAP
-                    });
+        $(document).ready(function(){
+            // To get oil rig details
+            var getOilRigs = function getOilRigs() {
+                var map = new google.maps.Map(document.getElementById('map'), {
+                    zoom: 2,
+                    center: new google.maps.LatLng(27, -85),
+                    mapTypeId: google.maps.MapTypeId.ROADMAP
+                });
 
-
-                    function getOilRigsLocation() {
-    		    var durationInMins = 30; // in mins
-                        var locationsjson = $.ajax({
-                            type: "GET",
-                            url: '/getOilRigs?durationInMins='+durationInMins,
-                            async: false
-                        }).responseText;
-                        var locations = eval('(' + locationsjson + ')');
-                        return locations;
-                    }
-
-                    var OilRigLocationObjects = getOilRigsLocation();
-                    var locationsdata = [];
-
-                    for (var i in OilRigLocationObjects) {
-                        var OilRigLocationObject = OilRigLocationObjects[i];
-                        var arrayelement = [];
-                        if (typeof OilRigLocationObject === "object") {
-                            for (var j in OilRigLocationObject) {
-                                var temp = [];
-                                var myitem = OilRigLocationObject[j];
-                                if (typeof myitem === "object") {
-                                    for (var k in myitem)
-                                        temp.push(myitem[k]);
-                                }
-                                arrayelement.push(temp);
-                            }
-                        }
-                        if (arrayelement.length) {
-                            locationsdata.push(arrayelement);
-                        }
-                    }
-                    var locations = locationsdata[0];
-                    var marker, i;
-                    var infowindow = new google.maps.InfoWindow();
-                    var totalDeviceCount = locations.length;
-                    
-                    for (var i = 0; i < totalDeviceCount ; i++) {
-                        
-                        marker = new google.maps.Marker({
-                            icon: "http://maps.google.com/mapfiles/ms/micons/green.png",
-                            position: new google.maps.LatLng(locations[i][1], locations[i][2]),
-                            map: map
-                        });
-                        google.maps.event.addListener(marker, 'mouseover', (function(marker, i) {
-                            return function() {
-                                infowindow.setContent(locations[i][0] );
-                                infowindow.open(map, marker);
-                            }
-                        })(marker, i));
-                        google.maps.event.addListener(marker, 'click', (function(marker, i) {
-                            return function() {
-                                $(".loader").css('display','block');
-                		deviceName = locations[i][0];
-                		latitude = locations[i][1];
-                		longtitude = locations[i][2]; 
-                                get_device_lifecycle();
-                            }
-                        })(marker, i));
-                    }
-                   } 
-                
-                function getDevicesAndRulList(device,latitude,longtitude){  
-                    var duration = 30;  // in mins
-                    var url = '/getDeviceLifecyclePredictions?oilRigId='+device+'&latitude='+latitude+'&longtitude='+longtitude+'&durationInMins='+ duration;
-
-                        var devicesData =  $.ajax({
-                                type: "GET",
-                                url:'/getDeviceLifecyclePredictions?oilRigId='+device+'&latitude='+latitude+'&longtitude='+longtitude+'&durationInMins='+ duration,
-                                async: false
-                        }).responseText;
-
-                        var myObject = eval('(' + devicesData + ')');
-                        return myObject;
-
+                // To get oil rig locations from rest api
+                function getOilRigsLocation() {
+                    var durationInMins = 30; // in mins
+                    var locationsjson = $.ajax({
+                        type: "GET",
+                        url: '/getOilRigs?durationInMins='+durationInMins,
+                        async: false
+                    }).responseText;
+                    var locations = eval('(' + locationsjson + ')');
+                    return locations;
                 }
 
+                var OilRigLocationObjects = getOilRigsLocation();
+                var locationsdata = [];
 
-                function get_device_lifecycle(){
-                    if( deviceName != null ) {
-                    var data =  getDevicesAndRulList(deviceName,latitude,longtitude);
+                // To get array of locations from json objects
+                for (var loactionObjects in OilRigLocationObjects) {
+                    var OilRigLocationObject = OilRigLocationObjects[loactionObjects];
+                    var locationsArray = [];
+                    if (typeof OilRigLocationObject === "object") {
+                        for (var singleLocationObject in OilRigLocationObject) {
+                            var locationArray = [];
+                            var locationObject = OilRigLocationObject[singleLocationObject];
+                            if (typeof locationObject === "object") {
+                                for (var locationItem in locationObject)
+                                    locationArray.push(locationObject[locationItem]);
+                            }
+                            locationsArray.push(locationArray);
+                        }
+                    }
+                    if (locationsArray.length) {
+                        locationsdata.push(locationsArray);
+                    }
+                }
+
+                var locations = locationsdata[0];
+                var marker;
+                var infowindow = new google.maps.InfoWindow();
+                var totalDeviceCount = locations.length;
+                
+                for (var i = 0; i < totalDeviceCount ; i++) {
+                    marker = new google.maps.Marker({
+                        icon: "http://maps.google.com/mapfiles/ms/micons/green.png",
+                        position: new google.maps.LatLng(locations[i][1], locations[i][2]),
+                        map: map
+                    });
+                    google.maps.event.addListener(marker, 'mouseover', (function(marker, i) {
+                        return function() {
+                            infowindow.setContent(locations[i][0] );
+                            infowindow.open(map, marker);
+                        }
+                    })(marker, i));
+                    google.maps.event.addListener(marker, 'click', (function(marker, i) {
+                        return function() {
+                            $(".loader").css('display','block');
+            		deviceName = locations[i][0];
+            		latitude = locations[i][1];
+            		longtitude = locations[i][2]; 
+                            get_device_lifecycle();
+                        }
+                    })(marker, i));
+                }
+            } 
+            
+            // Ajax call to get device's RUL values from rest api            
+            function getDevicesAndRulList(device,latitude,longtitude){  
+                var duration = 30;  // in mins
+                var url = '/getDeviceLifecyclePredictions?oilRigId='+device+'&latitude='+latitude+'&longtitude='+longtitude+'&durationInMins='+ duration;
+
+                var devicesData =  $.ajax({
+                        type: "GET",
+                        url:'/getDeviceLifecyclePredictions?oilRigId='+device+'&latitude='+latitude+'&longtitude='+longtitude+'&durationInMins='+ duration,
+                        async: false
+                }).responseText;
+
+                var devicesAndRulList = eval('(' + devicesData + ')');
+                return devicesAndRulList;
+            }
+
+            // To get device's RUL values
+            function get_device_lifecycle(){
+                if( deviceName != null ) {
+                    var deviceJsonObjects =  getDevicesAndRulList(deviceName,latitude,longtitude);
                     var chartData = [];
                     var devicesNames = [];
                     rulValues = [];
-                    for (var i in data) {
-                        var item = data[i];
+                    for (var deviceJsonIndex in deviceJsonObjects) {
+                        var deviceJsonObject = deviceJsonObjects[deviceJsonIndex];
 
-                        if (typeof item === "object") {
-                            for (var j in item) {
-                                var temp = [];
-                                var myitem = item[j];
+                        if (typeof deviceJsonObject === "object") {
+                            for (var deviceObjects in deviceJsonObject) {
+                                var deviceArray = [];
+                                var singleDeviceObject = deviceJsonObject[deviceObjects];
 
-                                if (typeof myitem === "object") {
-                                    for(var k in myitem){
+                                if (typeof singleDeviceObject === "object") {
+                                    for(var deviceObject in singleDeviceObject){
 
-                        if(k==="name")devicesNames.push(myitem[k]);
-                        else if(k==="rulVal")rulValues.push(myitem[k]);
-                                       temp.push(myitem[k]);
-
-                        }
+                                        if(deviceObject==="name")
+                                            devicesNames.push(singleDeviceObject[deviceObject]);
+                                        else if(deviceObject==="rulVal")
+                                            rulValues.push(singleDeviceObject[deviceObject]);
+                                        deviceArray.push(singleDeviceObject[deviceObject]);
+                                    }
                                 }
-
                             }
-                       }
-                       
+                        }
                     }
-                    for(var l=0;l<  rulValues.length;l++){
-                        colorChange(rulValues[l],l);
+
+                    for(var rulIndex=0;rulIndex<  rulValues.length;rulIndex++){
+                        colorChange(rulValues[rulIndex],rulIndex,devicesNames[rulIndex]);
                     }
-                    checkDeviceLife();
+                    addTooltip();
                     $(".loader").css('display','none');
                 }
             }
 
-                getOilRigs();
-                setInterval(get_device_lifecycle,1000*30*1);
+            getOilRigs();
+            setInterval(get_device_lifecycle,1000*30*1);
 
-                var interval = 1000 * 10 * 1; // where X is your every X minutes
-                //setInterval(get_device_lifecycle, interval);
-          
-            //Area click function added inside ready
+            var interval = 1000 * 10 * 1; // where X is your every X minutes
+            //setInterval(get_device_lifecycle, interval);
+      
+            // To show current and historical readings of each device while clicking on device circles
             $('.circle').click(function(e) { 
                 e.preventDefault();
                 $("#chartType").css("display","block");
                 $("input:radio:first").prop("checked", true).trigger("click");
                     var titles = [];
-                    var unit = 'Unit_1';
+                    //var unit = 'Unit_1';
+                    
                     var max = 270;
                     var target_id = e.target.id;
-                    if( target_id == 'a') rulValue = rulValues[0];
-                    else if( target_id == 'o') rulValue = rulValues[1];
-                    else rulValue = rulValues[2];
+                    var device_id = $("#"+target_id).data('device_id');
+                    if( target_id == 'crown_block')
+                        rulValue = rulValues[0];
+                    else if( target_id == 'traveling_block')
+                        rulValue = rulValues[1];
+                    else 
+                        rulValue = rulValues[2];
 
-                window.location.href = "ChartIndexWithTimegraph.html?dev=" + deviceName + "&id=" + e.target.id + "&rulValue=" + rulValue ;
+                    window.location.href = "ChartIndexWithTimegraph.html?deviceName=" + deviceName + "&id=" + e.target.id + "&rulValue=" + rulValue + "&device_id=" + device_id ;
             }); 
+        }); // Ready End
 
-
-            });
-
-    	function colorRed(id){
-            $("#"+id).data('maphilight', {"stroke":0, "alwaysOn": true, "fillColor":"ff0000", "fillOpacity":1}).trigger('alwaysOn.maphilight');
+        // To change device color as red
+    	function colorRed(deviceId){
+            $("#"+deviceId).data('maphilight', {"stroke":0, "alwaysOn": true, "fillColor":"ff0000", "fillOpacity":1}).trigger('alwaysOn.maphilight');
         }
-         function colorYellow(id){
-            $("#"+id).data('maphilight', {"stroke":0, "alwaysOn": true, "fillColor":"fdd835", "fillOpacity":1}).trigger('alwaysOn.maphilight');
-        }
-        function colorGreen(id){
-            $("#"+id).data('maphilight', {"stroke":0, "alwaysOn": true, "fillColor":"62ce54", "fillOpacity":1}).trigger('alwaysOn.maphilight');
 
+        // To change device color as yellow
+        function colorYellow(deviceId){
+            $("#"+deviceId).data('maphilight', {"stroke":0, "alwaysOn": true, "fillColor":"fdd835", "fillOpacity":1}).trigger('alwaysOn.maphilight');
+        }
+
+        // To change device color as green
+        function colorGreen(deviceId){
+            $("#"+deviceId).data('maphilight', {"stroke":0, "alwaysOn": true, "fillColor":"62ce54", "fillOpacity":1}).trigger('alwaysOn.maphilight');
         }
 
         $('.map').maphilight();
-        function checkDeviceLife(){
-        $('area').each(function () {
-            var elem = $(this),
-                map = elem.parent(),
-                image = $('img[usemap="#'+map.attr('name')+'"]');
-            var data = $(this).data('maphilight') || {};
 
-            var rulvalue = $(this).data('value');
-            var circleid = $(this).attr('id');
-            
-            elem.qtip({
-                content: {
-                    text: elem.attr('alt') + " , " + rulvalue, // Attempt to grab content from #statesMap-<State> elements first
-                    attr: 'alt' // No content? Grab the content from the 'alt' attribute
-                },
-                position: {
-                    viewport: image
-                },
-                show: {
-                    event: 'mouseover',
-                    solo: true
-                },
-                hide: {
-                    // Allow the user to hover on the tooltip
-                    fixed: true,
-                    delay: 200
-                },
-                style: {
-                    classes: 'qtip-tipsy'
-                 }
+        // To check status of device life cycle value based on threshold value 
+        function addTooltip(){
+            $('area').each(function () {
+                var deviceElement = $(this),
+                    map = deviceElement.parent(),
+                    image = $('img[usemap="#'+map.attr('name')+'"]');
+                var data = $(this).data('maphilight') || {};
+
+                var rulvalue = $(this).data('value');
+                
+                deviceElement.qtip({
+                    content: {
+                        text: deviceElement.attr('alt') + " , " + rulvalue, // Attempt to grab content from #statesMap-<State> elements first
+                        attr: 'alt' // No content? Grab the content from the 'alt' attribute
+                    },
+                    position: {
+                        viewport: image
+                    },
+                    show: {
+                        event: 'mouseover',
+                        solo: true
+                    },
+                    hide: {
+                        // Allow the user to hover on the tooltip
+                        fixed: true,
+                        delay: 200
+                    },
+                    style: {
+                        classes: 'qtip-tipsy'
+                     }
+                });
             });
-        });
-        }//end checkDeviceLife
+        }//end addTooltip
 
-        function colorChange(rulVal,index){
-    	var circleId
+        // To change device color based on threshold value
+        function colorChange(rulVal,index,device_id){
+            var deviceId = '';
     		if(index==0) { 
-                circleId='a';
-                $("#"+circleId).data('value', rulVal);
+                deviceId='crown_block';
+                $("#"+deviceId).data('value', rulVal);
+                $("#"+deviceId).data('device_id', device_id);
             }
     		if(index==1) {
-                circleId='o';
-                $("#"+circleId).data('value', rulVal);
+                deviceId='traveling_block';
+                $("#"+deviceId).data('value', rulVal);
+                $("#"+deviceId).data('device_id', device_id);
             }
     		if(index==2) { 
-                circleId='n';
-                $("#"+circleId).data('value', rulVal);
+                deviceId='top_drive';
+                $("#"+deviceId).data('value', rulVal);
+                $("#"+deviceId).data('device_id', device_id);
             }
     
-    	if(rulVal>60){
-    	
-    		colorGreen(circleId);
-
-    	}
-        else if(rulVal < 60 && rulVal > 0){
-                colorYellow(circleId);
+        	if(rulVal>60){
+        		colorGreen(deviceId);
+        	}
+            else if(rulVal < 60 && rulVal > 0){
+                colorYellow(deviceId);
+            }
+        	else{
+        		colorRed(deviceId);
+        	}
         }
-    	else{
-    		colorRed(circleId);
-    	}
-        }
-
-        var guageReading = [];
-
     </script>
 </body>
 
