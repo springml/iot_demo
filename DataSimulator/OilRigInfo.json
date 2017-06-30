@@ -2,39 +2,132 @@
 "plants":
 	[
 {
-	"Name": "Small Power Oil Company",
-	"Latitude": 27.760427,
-	"Longtitude": -95.369803
+	"Name": "HK",
+	"Latitude": 37.720427,
+	"Longtitude": -95.96803,
+	"Units": [["Unit0", 200], ["Unit1", 210], ["Unit2", 204]] 
 },
 {
-	"Name": "UK O&E",
-	"Latitude": 28.760427,
-	"Longtitude": -90.369803
+	"Name": "SK",
+	"Latitude": 38.720427,
+	"Longtitude": -95.96803,
+	"Units": [["Unit0", 201], ["Unit1", 190]] 
 	
 },
 {
-	"Name": "Clean Oil and Gas INC",
-	"Latitude": 25.760427,
-	"Longtitude": -93.369803
+	"Name": "SD",
+	"Latitude": 37.720427,
+	"Longtitude": -97.96803,
+	"Units": [["Unit0", 196], ["Unit1", 215], ["Unit2", 194]] 
+},
+{
+	"Name": "TK",
+	"Latitude": 47.760427,
+	"Longtitude": -101.369803,
+	"Units": [["Unit0", 200],  ["Unit2", 204]] 
+	
+},
+{
+	"Name": "DD",
+	"Latitude": 46.720427,
+	"Longtitude": -102.96803,
+	"Units": [["Unit0", 206], ["Unit1", 209], ["Unit2", 194]] 
+	
+},
+{
+	"Name": "VD",
+	"Latitude": 37.720427,
+	"Longtitude": -95.96803,
+	"Units": [["Unit0", 206], ["Unit1", 209], ["Unit2", 194]] 
+
+},
+{
+	"Name": "MA",
+	"Latitude": 38.720427,
+	"Longtitude": -95.96803,
+	"Units": [["Unit0", 206], ["Unit1", 209], ["Unit2", 194]] 
+
+},
+{
+	"Name": "KR",
+	"Latitude": 37.720427,
+	"Longtitude": -97.96803,
+	"Units": [["Unit0", 202], ["Unit1", 207], ["Unit2", 199]] 
+
+},
+{
+	"Name": "GR",
+	"Latitude": 43.720427,
+	"Longtitude": -99.96803,
+	"Units": [["Unit0", 202], ["Unit1", 207], ["Unit2", 199]] 
+
+},
+{
+	"Name": "PM",
+	"Latitude": 43.17,
+	"Longtitude": -100.369803,
+	"Units": [["Unit0", 202], ["Unit1", 207], ["Unit2", 199]] 
+},
+{
+	"Name": "SN",
+	"Latitude": 42.760427,
+	"Longtitude": -100.903,
+	"Units": [["Unit0", 202], ["Unit1", 207], ["Unit2", 199]] 
+},
+{
+	"Name": "ND",
+	"Latitude": 43.427,
+	"Longtitude": -107.369803,
+	"Units": [["Unit0", 202], ["Unit1", 207], ["Unit2", 199]] 
+	
+},
+{
+	"Name": "ET",
+	"Latitude": 42.760427,
+	"Longtitude": -106.369803,
+	"Units": [["Unit0", 202], ["Unit1", 207], ["Unit2", 199]] 
 	
 
 },
 {
-	"Name": "Clean Oil and Gas INC",
-	"Latitude": 26.760427,
-	"Longtitude": -88.369803
+	"Name": "ORig14",
+	"Latitude": 42.427,
+	"Longtitude": -107.369803,
+	"Units": [["Unit0", 202], ["Unit1", 207], ["Unit2", 199]] 
 	
 },
 {
-	"Name": "Gulf Energy",
-	"Latitude": 26.720427,
-	"Longtitude": -96.96803
+	"Name": "ORig15",
+	"Latitude": 46.720427,
+	"Longtitude": -102.96803,
+	"Units": [["Unit0", 202], ["Unit1", 207], ["Unit2", 199]] 
 	
 },
 {
-	"Name": "AP & Energy",
-	"Latitude": 27.720427,
-	"Longtitude": -95.96803
+	"Name": "ORig16",
+	"Latitude": 31.720427,
+	"Longtitude": -101.96803,
+	"Units": [["Unit0", 202], ["Unit1", 207], ["Unit2", 199]] 
 
+},
+{
+	"Name": "ORig17",
+	"Latitude": 31.20427,
+	"Longtitude": -102.96803,
+	"Units": [["Unit0", 202], ["Unit1", 207], ["Unit2", 199]] 
+
+},
+{
+	"Name": "ORig18",
+	"Latitude": 32.720427,
+	"Longtitude": -100.96803,
+	"Units": [["Unit0", 202], ["Unit1", 207], ["Unit2", 199]] 
+
+},
+{
+	"Name": "ORig19",
+	"Latitude": 42.720427,
+	"Longtitude": -105.96803,
+	"Units": [["Unit0", 202], ["Unit1", 207], ["Unit2", 199]] 
 }]
 }

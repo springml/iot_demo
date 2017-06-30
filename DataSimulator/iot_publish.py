@@ -28,17 +28,17 @@ def error_str(rc):
 class Device(object):
 	#Represents the state of a single device
 
-	def __init__(self, device_id, unit_num, plant):
+	def __init__(self, device_id, unit, plant):
 		
 		self.connected = False
 		self.features = ["OpSet1",  "OpSet2", "OpSet3", "SensorMeasure1", "SensorMeasure2", "SensorMeasure3", "SensorMeasure4", "SensorMeasure5", "SensorMeasure6", "SensorMeasure7", "SensorMeasure8", "SensorMeasure9", "SensorMeasure10", "SensorMeasure11", "SensorMeasure12", "SensorMeasure13", "SensorMeasure14", "SensorMeasure15", "SensorMeasure16", "SensorMeasure17", "SensorMeasure18", "SensorMeasure19", "SensorMeasure20", "SensorMeasure21"]
 		self.device_id = device_id
-		self.unit = "Unit_" + str(unit_num)
+		self.unit = plant["Units"][unit][0]
 		self.IndustrialPlant = plant["Name"]
 		self.latitude = plant["Latitude"]
 		self.longitude = plant["Longtitude"]
 		self.mqtt_telemetry_topic = '/devices/{}/events'.format(device_id)
-		self.device_time = abs(int(np.random.normal(206, 46)))
+		self.device_time = plant["Units"][unit][1]
 		self.sensor_trends = {}
 
 	def initialize_features(self):
@@ -123,17 +123,12 @@ def parse_command_line_args():
 	parser.add_argument(
 		'--project_id', required=True, help='GCP cloud project name')	
 	parser.add_argument(
-		'--private_key_file', required=True, help='Path to private key file.')
+		'--private_key_file', default='PemFiles/rsa_private.pem', help='Path to private key file.')
 	parser.add_argument(
 		'--pubsub_topic',
 		required=True,
 		help=('Google Cloud Pub/Sub topic. '
 			'Format is projects/project_id/topics/topic-id'))
-	parser.add_argument(
-		'--algorithm',
-		choices=('RS256', 'ES256'),
-		required=True,
-		help='Which encryption algorithm to use to generate the JWT.')
 	parser.add_argument('--api_key', required=True, help='Your API key.')
 	parser.add_argument(
 		'--service_account_json',
@@ -146,43 +141,40 @@ def parse_command_line_args():
 	parser.add_argument(
 		'--cloud_region', default='us-central1', help='GCP cloud region')
 	parser.add_argument('--num_plants', default=2, help='Number of Industrial Plants to simulate', type=int)
- 	parser.add_argument('--num_machines', default=2, help='Number of Machines on a Plant to Simulate', type=int)
 	parser.add_argument(
 		'--rsa_certificate_file',
-		default='rsa_cert.pem',
+		default='PemFiles/rsa_cert.pem',
 		help='Path to RS256 certificate file.')
 	parser.add_argument(
 		'--ca_certs',
 		default='PemFiles/roots.pem',
 		help='CA root certificate. Get from https://pki.google.com/roots.pem')
 	parser.add_argument(
-		'--mqtt_bridge_hostname',
-		default='mqtt.googleapis.com',
-		help='MQTT bridge hostname.')
-	parser.add_argument(
-		'--mqtt_bridge_port', default=8883, help='MQTT bridge port.')
+		'--publish_latency',
+		default=.1,
+		help='Publish Latency'
+		)
 
 	return parser.parse_args()
-
 def close_client(client):
 	client.disconnect()
 	client.loop_stop()
 
-def setup_client_device(registry_id, device_id, unit_num, plant):
+def setup_client_device(registry_id, device_id, unit, plant):
 	'''Creates a client which is a connection over MQTT for a device to a pubsub topic. 
 	   For each Device ID, creates a corresponding Device (Code Defined Class) which will simulate data for that particular Device ID 
 	'''
 
 	args = parse_command_line_args()
 	
-	device = Device(device_id, unit_num, plant)
+	device = Device(device_id, unit, plant)
 	
 	client = mqtt.Client(client_id='projects/{}/locations/{}/registries/{}/devices/{}'.format( \
 			args.project_id, args.cloud_region, registry_id, device_id))
 	
 	#setting a username and password for authenticating to Broker (IOT Core) creating a JWT singed with private key
 	client.username_pw_set( username='unused', \
-			password=create_jwt(args.project_id, args.private_key_file, args.algorithm))
+			password=create_jwt(args.project_id, args.private_key_file, 'RS256'))
 	
 
 	#configures network encryption and authentication
@@ -196,7 +188,7 @@ def setup_client_device(registry_id, device_id, unit_num, plant):
 	client.on_subscribe = device.on_subscribe
 	client.on_message = device.on_message
 	
-	client.connect(args.mqtt_bridge_hostname, args.mqtt_bridge_port)
+	client.connect('mqtt.googleapis.com', 8883)
 
 	client.loop_start()
 
@@ -236,17 +228,17 @@ def main():
 
 	#Looping through all the plants and their corresponding units within a plant to generate devices and clients 
 	for plant in plants_info:
-		for unit_num in xrange(args.num_machines):
+		for unit in xrange(len(plant["Units"])):
 			device_id = ''.join(random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ') for i in xrange(10))
 			device_registry.create_device_with_rs256(device_id, args.rsa_certificate_file)
-			client, device = setup_client_device(registry_id, device_id, unit_num, plant)
+			client, device = setup_client_device(registry_id, device_id, unit, plant)
 			Clients.append(client)
 			Devices.append(device)
 
 
 	max_device_time = max([Devices[i].device_time for i in xrange(len(Devices))])
 	
-	
+
 	#looping through the lifecycle of each device and publishing the measurements
 	for cycle in xrange(1, max_device_time):
 
@@ -259,7 +251,7 @@ def main():
 			print payload
 
 			Clients[j].publish(Devices[j].mqtt_telemetry_topic, payload, qos=1)
-			time.sleep(.1)
+			time.sleep(float(args.publish_latency))
 
 	print [(Devices[i].device_time, Devices[i].unit, Devices[i].IndustrialPlant) for i in xrange(len(Devices))]
 
