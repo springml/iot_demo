@@ -25,7 +25,7 @@ public class DeviceLifeCyclePredictionVisualisationResource {
     @CrossOrigin
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public String home() {
-        return "Device Lifecycle Prediction Visualtion Service is running!";
+        return "Device Lifecycle Prediction Visualisation Service is running!";
     }
 
     /* defines the resource responsible for getting list of devices and
