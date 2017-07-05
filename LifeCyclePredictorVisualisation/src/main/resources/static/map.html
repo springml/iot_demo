@@ -106,8 +106,8 @@
         var deviceone;
         var devicetwo;
         var devicethree;
-        var devices_rul_duration = 30;
-        var oilrigs_duration = 30;
+        var devices_rul_duration = 10;
+        var oilrigs_duration = 10;
 	var googlemap_refresh_interval = 20*1000; // in millisecs
 	var device_refresh_interval = 20*1000; // in millisecs
 
@@ -117,7 +117,7 @@
             // To get oil rig details
             var getOilRigsAjaxCall = function getOilRigs() {
                 var map = new google.maps.Map(document.getElementById('map'), {
-                    zoom: 2,
+                    zoom: 4,
                     center: new google.maps.LatLng(27, -85),
                     mapTypeId: google.maps.MapTypeId.ROADMAP
                 });
@@ -227,24 +227,31 @@
                             for (var deviceObjects in deviceJsonObject) {
                                 var deviceArray = [];
                                 var singleDeviceObject = deviceJsonObject[deviceObjects];
-
+                                var curDevName;
                                 if (typeof singleDeviceObject === "object") {
                                     for(var deviceObject in singleDeviceObject){
 
-                                        if(deviceObject==="name")
+                                        if(deviceObject==="name"){
                                             devicesNames.push(singleDeviceObject[deviceObject]);
-                                        else if(deviceObject==="rulVal")
-                                            rulValues.push(singleDeviceObject[deviceObject]);
+                                            curDevName = singleDeviceObject[deviceObject];
+                                            }
+                                        else if(deviceObject==="rulVal"){
+                                            rulValues[curDevName]=singleDeviceObject[deviceObject];
+                                            colorChange(singleDeviceObject[deviceObject],curDevName);
+
+                                            }
                                         deviceArray.push(singleDeviceObject[deviceObject]);
                                     }
                                 }
                             }
                         }
                     }
-
-                    for(var rulIndex=0;rulIndex<  rulValues.length;rulIndex++){
-                        colorChange(rulValues[rulIndex],rulIndex,devicesNames[rulIndex]);
-                    }
+                    console.log("after getting rul list");
+                    console.log(rulValues);
+console.log(rulValues.length);
+                   // for(var rulIndex=0;rulIndex<  rulValues.length;rulIndex++){
+                     //   colorChange(rulValues[devicesNames[rulIndex]],rulIndex,devicesNames[rulIndex]);
+                    //}
                     addTooltip();
                     $(".loader").css('display','none');
                 }
@@ -265,13 +272,8 @@
                     var max = 270;
                     var target_id = e.target.id;
                     var device_id = $("#"+target_id).data('device_id');
-                    if( target_id == 'crown_block')
-                        rulValue = rulValues[0];
-                    else if( target_id == 'traveling_block')
-                        rulValue = rulValues[1];
-                    else 
-                        rulValue = rulValues[2];
 
+                        rulValue = rulValues[device_id];
                     window.location.href = "ChartIndexWithTimegraph.html?deviceName=" + deviceName + "&id=" + e.target.id + "&rulValue=" + rulValue + "&device_id=" + device_id ;
             }); 
         }); // Ready End
@@ -327,19 +329,22 @@
         }//end addTooltip
 
         // To change device color based on threshold value
-        function colorChange(rulVal,index,device_id){
+        function colorChange(rulVal,device_id){
+            console.log("colorChangeCalled");
+            console.log(rulVal);
+            console.log(device_id);
             var deviceId = '';
-    		if(index==0) { 
+    		if(device_id=="Unit0") {
                 deviceId='crown_block';
                 $("#"+deviceId).data('value', rulVal);
                 $("#"+deviceId).data('device_id', device_id);
             }
-    		if(index==1) {
+    		if(device_id=="Unit1") {
                 deviceId='traveling_block';
                 $("#"+deviceId).data('value', rulVal);
                 $("#"+deviceId).data('device_id', device_id);
             }
-    		if(index==2) { 
+    		if(device_id=="Unit2") {
                 deviceId='top_drive';
                 $("#"+deviceId).data('value', rulVal);
                 $("#"+deviceId).data('device_id', device_id);

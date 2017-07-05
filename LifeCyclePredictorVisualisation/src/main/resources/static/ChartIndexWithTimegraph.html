@@ -52,6 +52,11 @@
     	    padding: 5% 4px 18%;
             margin-left: 50%;
         }
+        .dead-image{
+            background-color: black;
+    	    padding: 5% 4px 18%;
+            margin-left: 100%;
+        }
 
         /* Code for Divider */
         .safe-divider-one-class{
@@ -237,7 +242,7 @@
     <script>    
 
         $(document).ready(function(){
-	    var sensor_interval = 30;// in mins
+	    var sensor_interval = 10;// in mins
 	    var sensor_readings_refresh_interval = 10*1000;// 10 secs mentioned in milliseconds
             var sensorThresholds = [643,46,9000,1400];
             var device = getUrlParameter('deviceName');
@@ -259,7 +264,7 @@
          
             // To show rectangular indicator at the top of the page
             function setRulValProgressbar(){
-                if( rulVal > 200 && rulVal <= 350){
+                if( rulVal > 200 && rulVal <= 350 && rulVal!=lastRulVal){
                     $("#safe-divider-one").addClass('safe-divider-one-class');
                     //Remove 
                     $("#safe-divider-two").removeClass('safe-divider-two-class');
@@ -267,7 +272,7 @@
                     $("#risk-divider-one").removeClass('divider-image');
                     $("#risk-divider-two").removeClass('divider-image');
                     $("#danger-divider").removeClass('danger-divider-class');
-                }else if( rulVal > 100 && rulVal <= 200){
+                }else if( rulVal > 100 && rulVal <= 200 && rulVal!=lastRulVal){
                     $("#safe-divider-two").addClass('safe-divider-two-class');
                     //Remove 
                     $("#safe-divider-one").removeClass('safe-divider-one-class');
@@ -275,7 +280,7 @@
                     $("#risk-divider-one").removeClass('divider-image');
                     $("#risk-divider-two").removeClass('divider-image');
                     $("#danger-divider").removeClass('danger-divider-class');
-                }else if( rulVal > 60 && rulVal <= 100){
+                }else if( rulVal > 60 && rulVal <= 100 && rulVal!=lastRulVal){
                     $("#safe-divider-three").addClass('divider-image');
                     //Remove 
                     $("#safe-divider-two").removeClass('safe-divider-two-class');
@@ -283,7 +288,7 @@
                     $("#risk-divider-one").removeClass('divider-image');
                     $("#risk-divider-two").removeClass('divider-image');
                     $("#danger-divider").removeClass('danger-divider-class');
-                }else if(rulVal > 30 && rulVal <= 60 ){
+                }else if(rulVal > 30 && rulVal <= 60 && rulVal!=lastRulVal){
                     $("#risk-divider-one").addClass('divider-image');
                     //Remove 
                     $("#safe-divider-two").removeClass('safe-divider-two-class');
@@ -291,7 +296,7 @@
                     $("#safe-divider-one").removeClass('safe-divider-one-class');
                     $("#risk-divider-two").removeClass('divider-image');
                     $("#danger-divider").removeClass('danger-divider-class');
-                }else if( rulVal < 30 && rulVal > 0){
+                }else if( rulVal < 30 && rulVal > 0 && rulVal!=lastRulVal){
                     $("#risk-divider-two").addClass('divider-image');
                     //Remove 
                     $("#safe-divider-two").removeClass('safe-divider-two-class');
@@ -299,9 +304,19 @@
                     $("#risk-divider-one").removeClass('divider-image');
                     $("#safe-divider-one").removeClass('safe-divider-one-class');
                     $("#danger-divider").removeClass('divider-image');        
-                }else{
+                }else if(rulVal!=lastRulVal){
                     $("#danger-divider").addClass('danger-divider-class');
                     //Remove 
+                    $("#safe-divider-two").removeClass('safe-divider-two-class');
+                    $("#safe-divider-three").removeClass('divider-image');
+                    $("#risk-divider-one").removeClass('divider-image');
+                    $("#risk-divider-two").removeClass('divider-image');
+                    $("#safe-divider-one").removeClass('safe-divider-one-class');
+                }
+                else{
+                    $("#danger-divider").addClass('dead-image');
+                    //Remove
+                    $("#safe-divider-two").removeClass('danger-divider-class');
                     $("#safe-divider-two").removeClass('safe-divider-two-class');
                     $("#safe-divider-three").removeClass('divider-image');
                     $("#risk-divider-one").removeClass('divider-image');
