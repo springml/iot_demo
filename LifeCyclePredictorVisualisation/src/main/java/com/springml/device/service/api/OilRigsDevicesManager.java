@@ -84,6 +84,11 @@ public class OilRigsDevicesManager {
                         if (loopCount == 2) {
                             oilRig.setLongtitude(columns.get(loopCount).getDoubleValue());
                         }
+                        else {
+                            if (loopCount == 3) {
+                                oilRig.setRemainingLifeCycle(columns.get(loopCount).getDoubleValue());
+                            }
+                        }
                     }
                 }
 
@@ -131,7 +136,7 @@ public class OilRigsDevicesManager {
     }
 
     private String generateIndustrialPlantsQuery(String fromDate) {
-        String fetchIndustrialPlantsQuery = "SELECT IndustrialPlantName,Latitude,Longtitude FROM [" + tableName + "] where IndustrialPlantName is not null and PredictedDate >  DATETIME(\"" + fromDate + "\")  group by  \n" +
+        String fetchIndustrialPlantsQuery = "SELECT IndustrialPlantName,Latitude,Longtitude,min(RemainingOperationCycles) as RUL FROM [" + tableName + "] where IndustrialPlantName is not null and PredictedDate >  DATETIME(\"" + fromDate + "\")  group by  \n" +
                 "IndustrialPlantName,Latitude,Longtitude\n";
 
         return fetchIndustrialPlantsQuery;

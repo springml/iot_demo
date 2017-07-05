@@ -5,9 +5,7 @@ import com.google.cloud.dataflow.sdk.options.Default;
 import com.google.cloud.dataflow.sdk.options.Description;
 import com.google.cloud.dataflow.sdk.options.Validation;
 
-/**
- * Created by kaarthikraaj on 2/6/17.
- */
+
 public interface DeviceLifeCyclePredictorPipelineOptions extends DataflowPipelineOptions {
 
     @Description("ProjectId where data source topic lives")

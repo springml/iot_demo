@@ -237,13 +237,16 @@
     <script>    
 
         $(document).ready(function(){
+	    var sensor_interval = 30;// in mins
+	    var sensor_readings_refresh_interval = 10*1000;// 10 secs mentioned in milliseconds
             var sensorThresholds = [643,46,9000,1400];
             var device = getUrlParameter('deviceName');
             var deviceId = getUrlParameter('id');
             var rulVal = getUrlParameter('rulValue');
             var device_id = getUrlParameter('device_id');
-            var lastRulVal = rulVal;
+            var lastRulVal;
             var currentCycle , lastCycle;
+            var sensor1Chart , sensor2Chart , sensor3Chart , sensor4Chart;
 
             if( deviceId == 'crown_block')
                 deviceTitle = 'Crown Block';
@@ -316,7 +319,8 @@
               }
 
             // To show current and historical readings with charts      
-            function showCharts(device,deviceId){
+            function showCharts(device,deviceId,isUpdate){
+            if(rulVal!=lastRulVal){
             	var guageReading = [];
             	var units = ['kg','°C','psi','kg/m-s'];
                 var titles = ['Cable Tension','Oil Temperature', "Differential Pressure",'Viscosity'];
@@ -401,32 +405,33 @@
                        }
                        setRulValProgressbar();
                        $("#sensor1").css("cssText","background:url('images/"+titles[chartIndex]+".png');background-repeat:no-repeat;backgroud-size:120px 150px;background-position:center;");
-                       drawLineGraphForSensors(titles[0],cyclesForChartJS,sensorReadingsForChartJs,"sensor1","#009688",latestVal[0],641.21, 644.53);
+                       drawLineGraphForSensors(titles[0],cyclesForChartJS,sensorReadingsForChartJs,"sensor1","#009688",latestVal[0],641.21, 644.53,isUpdate);
 
                        google.charts.load('current', {'packages':['corechart']});
-                       google.charts.setOnLoadCallback(function(){drawGaugeChartUsingChartJS(titles[0],"donut1",latestVal[0], 641.21, 644.53,getSensorColor(1,latestVal[0]),"#B3E5FC",units[0], "sensor1Val",sensors[0])});
+                       google.charts.setOnLoadCallback(function(){drawGaugeChart(titles[0],"donut1",latestVal[0], 641.21, 644.53,getSensorColor(1,latestVal[0]),"#B3E5FC",units[0], "sensor1Val",sensors[0])});
                     }
                     else if(chartIndex == 1){
                         $("#sensor2").css("cssText","background:url('images/"+titles[chartIndex]+".png');background-repeat:no-repeat;backgroud-size:300px 200px;background-position:center;");
 
-                         drawLineGraphForSensors(titles[1],cyclesForChartJS,sensorReadingsForChartJs,"sensor2","#BA68C8",latestVal[1],46.85,48.53);
+                         drawLineGraphForSensors(titles[1],cyclesForChartJS,sensorReadingsForChartJs,"sensor2","#BA68C8",latestVal[1],46.85,48.53,isUpdate);
                          google.charts.load('current', {'packages':['corechart']});
-                         google.charts.setOnLoadCallback(function(){drawGaugeChartUsingChartJS(titles[1],"donut2",latestVal[1],46.85,48.53,getSensorColor(2,latestVal[1]),"#B2EBF2",units[1], "sensor2Val",sensors[1])});
+                         google.charts.setOnLoadCallback(function(){drawGaugeChart(titles[1],"donut2",latestVal[1],46.85,48.53,getSensorColor(2,latestVal[1]),"#B2EBF2",units[1], "sensor2Val",sensors[1])});
                     }
                     else if(chartIndex == 2){
                          $("#sensor3").css("cssText","background:url('images/"+titles[chartIndex]+".png');background-repeat:no-repeat;backgroud-size:300px 200px;background-position:center;");
-        	             drawLineGraphForSensors(titles[2],cyclesForChartJS,sensorReadingsForChartJs,"sensor3","#FF80AB",latestVal[2], 9021.73, 9244.59);             
+        	             drawLineGraphForSensors(titles[2],cyclesForChartJS,sensorReadingsForChartJs,"sensor3","#FF80AB",latestVal[2], 9021.73, 9244.59,isUpdate);             
         	             google.charts.load('current', {'packages':['corechart']});
-                         google.charts.setOnLoadCallback(function(){drawGaugeChartUsingChartJS(titles[2],"donut3",latestVal[2], 9021.73, 9244.59,getSensorColor(3,latestVal[2]),"#B2DFDB",units[2], "sensor3Val",sensors[2])});
+                         google.charts.setOnLoadCallback(function(){drawGaugeChart(titles[2],"donut3",latestVal[2], 9021.73, 9244.59,getSensorColor(3,latestVal[2]),"#B2DFDB",units[2], "sensor3Val",sensors[2])});
                     }
                     else if(chartIndex == 3){
                          $("#sensor4").css("cssText","background:url('images/"+titles[chartIndex]+".png');background-repeat:no-repeat;backgroud-size:300px 200px;background-position:center;");
-        	             drawLineGraphForSensors(titles[3],cyclesForChartJS,sensorReadingsForChartJs,"sensor4","#42A5F5",latestVal[3],1382.25, 1441.49);  
+        	             drawLineGraphForSensors(titles[3],cyclesForChartJS,sensorReadingsForChartJs,"sensor4","#42A5F5",latestVal[3],1382.25, 1441.49,isUpdate);  
         	             google.charts.load('current', {'packages':['corechart']});
-                         google.charts.setOnLoadCallback(function(){drawGaugeChartUsingChartJS(titles[3],"donut4",latestVal[3],1382.25, 1441.49,getSensorColor(4,latestVal[3]),"#FDD835",units[3], "sensor4Val",sensors[3])});
+                         google.charts.setOnLoadCallback(function(){drawGaugeChart(titles[3],"donut4",latestVal[3],1382.25, 1441.49,getSensorColor(4,latestVal[3]),"#FDD835",units[3], "sensor4Val",sensors[3])});
                     }
                     cyclesForChartJS = [];
                     sensorReadingsForChartJs = [];
+                }
                 }
             } // End show charts
 
@@ -438,19 +443,10 @@
         	       return "#006400";
             }
 
-            function drawChart1(title,data,id) {
-                  var options = {
-        	       backgroundColor: 'none',
-        	       title: title,
-        	       curveType: 'function',
-        	       legend: { position: 'bottom' },
-                 };
-                 var chart = new google.visualization.LineChart(document.getElementById(id));
-                 chart.draw(data, options);
-            }
+            
           
             // To show Gauge charts with current reading
-            function drawGaugeChartUsingChartJS(title,id,donutvalue,Min_value,Max_value,hoverbgcolour,bgcolour, unit, chartLabel, sensorname){
+            function drawGaugeChart(title,id,donutvalue,Min_value,Max_value,hoverbgcolour,bgcolour, unit, chartLabel, sensorname){
                 donutvalue = Math.round(donutvalue);
                 var donutmin = Min_value + ((Max_value - Min_value)/1.5);
                 $("#"+chartLabel).html(donutvalue+ " - " +title+" in "+ unit + "<br> ( " + sensorname + " )");
@@ -483,7 +479,9 @@
             }
          
             //To show line chart with historical reading
-            function drawLineGraphForSensors(sensorName,cycles,readings,canvasId,bgcolor,latest,Min_value,Max_value){
+            //To show line chart with historical reading
+            function drawLineGraphForSensors(sensorName,cycles,readings,canvasId,bgcolor,latest,Min_value,Max_value , isUpdate){
+                //alert(method);
                 latest = Math.round(latest);
                 var thresholdvalue = Min_value + ((Max_value - Min_value)/1.5);
                 var length = readings.length;
@@ -492,79 +490,117 @@
             	for(var i=0;i<length;i++){
             		threshold[i] = thresholdvalue;
             	}
-             	// get chart canvas
-            	var chartData = {
-                    labels:cycles,
-                    datasets: [
-                        {
-                            label: sensorName,
-                            fill: false,
-                            lineTension: 0.1,
-                            backgroundColor: bgcolor,
-                            borderColor: bgcolor,
-                            borderCapStyle: 'butt',
-                            borderDash: [],
-                            borderDashOffset: 0.0,
-                            borderJoinStyle: 'miter',
-                            pointBorderColor: "#b61827",
-                            pointBackgroundColor: "#fff",
-                            pointBorderWidth: 0,
-                            pointHoverRadius: 5,
-                            pointHoverBackgroundColor: "#b61827",
-                            pointHoverBorderColor: "rgba(220,220,220,1)",
-                            pointHoverBorderWidth: 2,
-                            pointRadius: 0,
-                            pointHitRadius: 10,
-                            data :readings ,
-                            spanGaps: false
-                        },
-    		            {
-                            label: "Threshold Value",
-    			            lineTension: 0.1,
-                            backgroundColor: "red",
-                            borderCapStyle: 'butt',
-                            borderDash: [],
-                            borderDashOffset: 0.0,
-                            borderJoinStyle: 'miter',
-                            pointBorderColor: "#b61827",
-                            pointBackgroundColor: "#fff",
-                            pointBorderWidth: 0,
-                            pointHoverRadius: 5,
-                            pointHoverBackgroundColor: "#b61827",
-                            pointHoverBorderColor: "rgba(220,220,220,1)",
-                            pointHoverBorderWidth: 2,
-                            pointRadius: 0,
-                            pointHitRadius: 10,
-                            fill: false,
-                            spanGaps: false,
-    			            data: threshold,
-          			        borderWidth: 1,
-                            borderColor: "red",
-    		                dottedFromLabel: "1"
-    	               }
-                    ]
-                };
-                var tempChart = new Chart(document.getElementById(canvasId), {
-                    type: 'line',
-                    data: chartData,
-                    options: {
-                        tooltips: {
-                            mode: 'index',
-                            intersect: false
-                        },
-                        hover: {
-                            mode: 'nearest',
-                            intersect: true
-                        },
-                	    scales: {
-                	        xAxes: [{
-                            		display: false
-                        		}]
-                    	}
-                    }
-                });
-            }     
 
+                if(!isUpdate){
+                 	// get chart canvas
+                	var chartData = {
+                        labels:cycles,
+                        datasets: [
+                            {
+                                label: sensorName,
+                                fill: false,
+                                lineTension: 0.1,
+                                backgroundColor: bgcolor,
+                                borderColor: bgcolor,
+                                borderCapStyle: 'butt',
+                                borderDash: [],
+                                borderDashOffset: 0.0,
+                                borderJoinStyle: 'miter',
+                                pointBorderColor: "#b61827",
+                                pointBackgroundColor: "#fff",
+                                pointBorderWidth: 0,
+                                pointHoverRadius: 5,
+                                pointHoverBackgroundColor: "#b61827",
+                                pointHoverBorderColor: "rgba(220,220,220,1)",
+                                pointHoverBorderWidth: 2,
+                                pointRadius: 0,
+                                pointHitRadius: 10,
+                                data :readings ,
+                                spanGaps: false
+                            },
+        		            {
+                                label: "Threshold Value",
+        			            lineTension: 0.1,
+                                backgroundColor: "red",
+                                borderCapStyle: 'butt',
+                                borderDash: [],
+                                borderDashOffset: 0.0,
+                                borderJoinStyle: 'miter',
+                                pointBorderColor: "#b61827",
+                                pointBackgroundColor: "#fff",
+                                pointBorderWidth: 0,
+                                pointHoverRadius: 5,
+                                pointHoverBackgroundColor: "#b61827",
+                                pointHoverBorderColor: "rgba(220,220,220,1)",
+                                pointHoverBorderWidth: 2,
+                                pointRadius: 0,
+                                pointHitRadius: 10,
+                                fill: false,
+                                spanGaps: false,
+        			            data: threshold,
+              			        borderWidth: 1,
+                                borderColor: "red",
+        		                dottedFromLabel: "1"
+        	               }
+                        ]
+                    };
+                    tempChart = new Chart(document.getElementById(canvasId), {
+                        type: 'line',
+                        data: chartData,
+                        options: {
+                            tooltips: {
+                                mode: 'index',
+                                intersect: false
+                            },
+                            hover: {
+                                mode: 'nearest',
+                                intersect: true
+                            },
+                            scales: {
+                                xAxes: [{
+                                        display: false
+                                    }]
+                            }
+                        }
+                    });
+                    if( canvasId == 'sensor1' ){
+                        sensor1Chart = tempChart;
+                    }else if( canvasId == 'sensor2' ){
+                        sensor2Chart = tempChart;
+                    }else if( canvasId == 'sensor3' ){
+                        sensor3Chart = tempChart;
+                    }else{
+                        sensor4Chart = tempChart;
+                    }
+                }  //new call ends here 
+                else
+                {
+                    if( canvasId == 'sensor1' ){
+
+                        sensor1Chart.chart.config.data.labels=cycles;
+                        sensor1Chart.chart.config.data.datasets[0].data=readings;
+                        sensor1Chart.chart.config.data.datasets[1].data=threshold;
+
+                        sensor1Chart.update();
+                    }else if( canvasId == 'sensor2' ){
+                        sensor2Chart.chart.config.data.labels=cycles;
+                        sensor2Chart.chart.config.data.datasets[0].data=readings;
+                        sensor2Chart.chart.config.data.datasets[1].data=threshold;
+                        sensor2Chart.update();
+                    }else if( canvasId == 'sensor3' ){
+                        sensor3Chart.chart.config.data.labels=cycles;
+                        sensor3Chart.chart.config.data.datasets[0].data=readings;
+                        sensor3Chart.chart.config.data.datasets[1].data=threshold;
+                        sensor3Chart.update();
+                    }else{
+                        sensor4Chart.chart.config.data.labels=cycles;
+                        sensor4Chart.chart.config.data.datasets[0].data=readings;
+                        sensor4Chart.chart.config.data.datasets[1].data=threshold;
+                        sensor4Chart.update();
+                    }
+                }
+            }     
+    
             // To get url parameter values
             function getUrlParameter(param) {
                 var PageURL = decodeURIComponent(window.location.search.substring(1)),
@@ -581,18 +617,18 @@
             
             // To get sensor reading for particular device
             function getSensorReadings(device){ 
-                var duration = 30;//in mins   
+
                 var sensordata =  $.ajax({
                     type: "GET",
-                    url:'/getSensorReadingsForDevice?deviceId='+device_id+'&industrialPlantId='+device+'&durationInMins='+ duration,
+                    url:'/getSensorReadingsForDevice?deviceId='+device_id+'&industrialPlantId='+device+'&durationInMins='+ sensor_interval,
                     async: false
                 }).responseText;
                 var sensorObject = eval('(' + sensordata + ')');
                 return sensorObject;
             }
 
-            setInterval(function(){showCharts(device,deviceId);},10000); // Time in milliseconds
-            showCharts(device,deviceId);
+            setInterval(function(){showCharts(device,deviceId,true);},sensor_readings_refresh_interval); // Time in milliseconds
+            showCharts(device,deviceId,false);
 
         }); // Ready function end
     </script>

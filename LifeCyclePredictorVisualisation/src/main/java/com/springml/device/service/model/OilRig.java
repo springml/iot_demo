@@ -7,6 +7,15 @@ public class OilRig {
     String name;
     Double latitude;
     Double Longtitude;
+    Double remainingLifeCycle;
+
+    public Double getRemainingLifeCycle() {
+        return remainingLifeCycle;
+    }
+
+    public void setRemainingLifeCycle(Double remainingLifeCycle) {
+        this.remainingLifeCycle = remainingLifeCycle;
+    }
 
     public Double getLatitude() {
         return latitude;
