@@ -55,7 +55,7 @@
         <div class="navbar navbar-inverse navbar-fixed-top" role="navigation"> 
             <div class="container-fluid">
             	<div class="navbar-header">
-                	<a class="navbar-brand" style="color: white" href="./map.html"> Oil & Gas Demo </a>
+                	<a class="navbar-brand" style="color: white" href="./map.html"> Oil&Gas Demo </a>
 	        </div>
 		<div class="navbar-collapse collapse">
                             <ul class="nav navbar-nav navbar-left">
@@ -101,14 +101,21 @@
     	var deviceName;
     	var latitude;
     	var longtitude;
+        var remainingLifeCycle;
         var rulValues = [];
         var deviceone;
         var devicetwo;
         var devicethree;
+        var devices_rul_duration = 30;
+        var oilrigs_duration = 30;
+	var googlemap_refresh_interval = 20*1000; // in millisecs
+	var device_refresh_interval = 20*1000; // in millisecs
+
+
 
         $(document).ready(function(){
             // To get oil rig details
-            var getOilRigs = function getOilRigs() {
+            var getOilRigsAjaxCall = function getOilRigs() {
                 var map = new google.maps.Map(document.getElementById('map'), {
                     zoom: 2,
                     center: new google.maps.LatLng(27, -85),
@@ -117,10 +124,10 @@
 
                 // To get oil rig locations from rest api
                 function getOilRigsLocation() {
-                    var durationInMins = 30; // in mins
+
                     var locationsjson = $.ajax({
                         type: "GET",
-                        url: '/getOilRigs?durationInMins='+durationInMins,
+                        url: '/getOilRigs?durationInMins='+oilrigs_duration,
                         async: false
                     }).responseText;
                     var locations = eval('(' + locationsjson + ')');
@@ -153,12 +160,23 @@
                 var locations = locationsdata[0];
                 var marker;
                 var infowindow = new google.maps.InfoWindow();
-                var totalDeviceCount = locations.length;
+                var totalDeviceCount = 0;
+                if(locations.length)
+                    totalDeviceCount = locations.length;
                 
-                for (var i = 0; i < totalDeviceCount ; i++) {
+                var icon_image;
+                for (var i = 0; i < totalDeviceCount ; i++) { 
+                    remainingLifeCycle = locations[i][2];
+                    if(remainingLifeCycle > 60){
+                        icon_image = "http://maps.google.com/mapfiles/ms/micons/green.png";
+                    }else if(remainingLifeCycle <= 60 && remainingLifeCycle > 0){
+                        icon_image = "http://maps.google.com/mapfiles/ms/micons/yellow.png";
+                    }else{
+                        icon_image = "http://maps.google.com/mapfiles/ms/micons/red.png";
+                    }
                     marker = new google.maps.Marker({
-                        icon: "http://maps.google.com/mapfiles/ms/micons/green.png",
-                        position: new google.maps.LatLng(locations[i][1], locations[i][2]),
+                        icon: icon_image,
+                        position: new google.maps.LatLng(locations[i][1], locations[i][3]),
                         map: map
                     });
                     google.maps.event.addListener(marker, 'mouseover', (function(marker, i) {
@@ -170,10 +188,11 @@
                     google.maps.event.addListener(marker, 'click', (function(marker, i) {
                         return function() {
                             $(".loader").css('display','block');
-            		deviceName = locations[i][0];
-            		latitude = locations[i][1];
-            		longtitude = locations[i][2]; 
-                            get_device_lifecycle();
+                    		deviceName = locations[i][0];
+                    		latitude = locations[i][1];
+                            remainingLifeCycle = locations[i][2];
+                    		longtitude = locations[i][3]; 
+                            get_device_lifecycleAjaxCall();
                         }
                     })(marker, i));
                 }
@@ -181,12 +200,12 @@
             
             // Ajax call to get device's RUL values from rest api            
             function getDevicesAndRulList(device,latitude,longtitude){  
-                var duration = 30;  // in mins
-                var url = '/getDeviceLifecyclePredictions?oilRigId='+device+'&latitude='+latitude+'&longtitude='+longtitude+'&durationInMins='+ duration;
+
+                var getRulListUrl = '/getDeviceLifecyclePredictions?oilRigId='+device+'&latitude='+latitude+'&longtitude='+longtitude+'&durationInMins='+ devices_rul_duration ;
 
                 var devicesData =  $.ajax({
                         type: "GET",
-                        url:'/getDeviceLifecyclePredictions?oilRigId='+device+'&latitude='+latitude+'&longtitude='+longtitude+'&durationInMins='+ duration,
+                        url: getRulListUrl,
                         async: false
                 }).responseText;
 
@@ -195,7 +214,7 @@
             }
 
             // To get device's RUL values
-            function get_device_lifecycle(){
+            function get_device_lifecycleAjaxCall(){
                 if( deviceName != null ) {
                     var deviceJsonObjects =  getDevicesAndRulList(deviceName,latitude,longtitude);
                     var chartData = [];
@@ -231,11 +250,9 @@
                 }
             }
 
-            getOilRigs();
-            setInterval(get_device_lifecycle,1000*30*1);
-
-            var interval = 1000 * 10 * 1; // where X is your every X minutes
-            //setInterval(get_device_lifecycle, interval);
+            getOilRigsAjaxCall();
+            setInterval(getOilRigsAjaxCall , googlemap_refresh_interval);
+            setInterval(get_device_lifecycleAjaxCall, device_refresh_interval);
       
             // To show current and historical readings of each device while clicking on device circles
             $('.circle').click(function(e) { 
@@ -283,12 +300,11 @@
                     map = deviceElement.parent(),
                     image = $('img[usemap="#'+map.attr('name')+'"]');
                 var data = $(this).data('maphilight') || {};
-
                 var rulvalue = $(this).data('value');
                 
                 deviceElement.qtip({
                     content: {
-                        text: deviceElement.attr('alt') + " , " + rulvalue, // Attempt to grab content from #statesMap-<State> elements first
+                        text: deviceName + " -> " +deviceElement.attr('alt') + " , " + rulvalue, // Attempt to grab content from #statesMap-<State> elements first
                         attr: 'alt' // No content? Grab the content from the 'alt' attribute
                     },
                     position: {
@@ -332,7 +348,7 @@
         	if(rulVal>60){
         		colorGreen(deviceId);
         	}
-            else if(rulVal < 60 && rulVal > 0){
+            else if(rulVal <= 60 && rulVal > 0){
                 colorYellow(deviceId);
             }
         	else{
