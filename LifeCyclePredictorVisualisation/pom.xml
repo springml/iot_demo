@@ -24,11 +24,7 @@
         </repository>
     </repositories>
     <dependencies>
-        <!--<dependency>
-        <groupId>org.springframework</groupId>
-        <artifactId>gs-rest-service-cors</artifactId>
-        <version>0.1.0</version>
-        </dependency> -->
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -65,13 +61,7 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <version>1.5.3.RELEASE</version>
             <scope>test</scope>
-            <!--<exclusions>
-                <exclusion>
-                    <groupId> com.vaadin.external.google</groupId>
-                    <artifactId>android-json</artifactId>
-                </exclusion>
-            </exclusions>
-            -->
+
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>

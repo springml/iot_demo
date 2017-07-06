@@ -1,6 +1,7 @@
 package com.springml.device.service;
 
 import com.google.api.services.bigquery.model.TableRow;
+import com.google.cloud.dataflow.sdk.options.PipelineOptionsFactory;
 import org.junit.Test;
 
 import static org.junit.Assert.assertNotEquals;
@@ -15,7 +16,12 @@ public class DeviceLifeCyclePredictorMLTransormationTest {
 
     @Test
     public void testLifeCyclePredictorTransformation() {
-        DeviceLifeCyclePredictorMLTransormation deviceLifeCyclePredictorMLTransormation = new DeviceLifeCyclePredictorMLTransormation("https://ml.googleapis.com/v1beta1/projects/mlpdm-168115/models/predictivemaintenance_v3/versions/v3:predict");
+        String[] args = {"--project=mlpdm-168115" ,"--stagingLocation=gs://pdmdemo/predictivemaintenance/", "--runner=DataflowPipelineRunner", "--streaming=true","--numWorkers=1", "--zone=us-central1-a", "--sourceTopic=iot_mlpdm"};
+        DeviceLifeCyclePredictorPipelineOptions options =
+                PipelineOptionsFactory.fromArgs(args).withValidation().as(DeviceLifeCyclePredictorPipelineOptions.class);
+        String mlUrl = options.getIotPredictiveMaintainanceMLUrl();
+        DeviceLifeCyclePredictorMLTransormation deviceLifeCyclePredictorMLTransormation = new DeviceLifeCyclePredictorMLTransormation(mlUrl);
+
         TableRow tableRow = new TableRow();
         tableRow.set("UnitNumber", 101);
         tableRow.set("Cycle", 101);

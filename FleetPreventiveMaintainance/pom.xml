@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.springml</groupId>
-    <artifactId>FleetPreventiveMaintainance</artifactId>
+    <artifactId>IoTPredictiveMaintainance</artifactId>
     <version>1.0.0</version>
 
     <build>

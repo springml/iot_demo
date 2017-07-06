@@ -11,6 +11,8 @@ import com.google.cloud.dataflow.sdk.options.PipelineOptionsFactory;
 
 import com.google.cloud.dataflow.sdk.transforms.ParDo;
 import com.google.cloud.dataflow.sdk.values.PCollection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +23,7 @@ import java.util.List;
  * setting transformations
  */
 public class DeviceServiceGDF {
+    private static final Logger LOG = LoggerFactory.getLogger(DeviceServiceGDF.class);
 
     public static void main(String args[]) {
         DeviceLifeCyclePredictorPipelineOptions options =
@@ -33,9 +36,9 @@ public class DeviceServiceGDF {
                 .timestampLabel("ts")
                 .withCoder(TableRowJsonCoder.of()));
 
-        String fleetPreventMLServiceUrl = options.getFleetPreventMLUrl();
-
-        datastream.apply("Invoking FleetPreventiveMaintainanceML", ParDo.of(new DeviceLifeCyclePredictorMLTransormation(fleetPreventMLServiceUrl)))
+        String fleetPreventMLServiceUrl = options.getIotPredictiveMaintainanceMLUrl();
+        LOG.info("The table used for insertion is "+options.getDeviceSensorReadingsTable());
+        datastream.apply("Invoking IOTPredictiveMaintainanceML", ParDo.of(new DeviceLifeCyclePredictorMLTransormation(fleetPreventMLServiceUrl)))
         .apply(BigQueryIO.Write.named("Write to BigQuery")
                 .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED)
                 .withSchema(getDeviceSensorReadingsSchema())
