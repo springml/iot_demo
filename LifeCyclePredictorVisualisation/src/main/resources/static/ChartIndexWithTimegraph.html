@@ -426,26 +426,26 @@
                        drawLineGraphForSensors(titles[0],cyclesForChartJS,sensorReadingsForChartJs,"sensor1","#009688",latestVal[0],641.21, 644.53,isUpdate);
 
                        google.charts.load('current', {'packages':['corechart']});
-                       google.charts.setOnLoadCallback(function(){drawGaugeChart(titles[0],"donut1",latestVal[0], 641.21, 644.53,getSensorColor(1,latestVal[0]),"#B3E5FC",units[0], "sensor1Val",sensors[0])});
+                       google.charts.setOnLoadCallback(function(){drawGaugeChart(titles[0],"donut1",latestVal[0].toFixed(1), 641.21, 644.53,getSensorColor(1,latestVal[0]),"#B3E5FC",units[0], "sensor1Val",sensors[0])});
                     }
                     else if(chartIndex == 1){
                         $("#sensor2").css("cssText","background:url('images/"+titles[chartIndex]+".png');background-repeat:no-repeat;backgroud-size:300px 200px;background-position:center;");
 
                          drawLineGraphForSensors(titles[1],cyclesForChartJS,sensorReadingsForChartJs,"sensor2","#BA68C8",latestVal[1],46.85,48.53,isUpdate);
                          google.charts.load('current', {'packages':['corechart']});
-                         google.charts.setOnLoadCallback(function(){drawGaugeChart(titles[1],"donut2",latestVal[1],46.85,48.53,getSensorColor(2,latestVal[1]),"#B2EBF2",units[1], "sensor2Val",sensors[1])});
+                         google.charts.setOnLoadCallback(function(){drawGaugeChart(titles[1],"donut2",latestVal[1].toFixed(1),46.85,48.53,getSensorColor(2,latestVal[1]),"#B2EBF2",units[1], "sensor2Val",sensors[1])});
                     }
                     else if(chartIndex == 2){
                          $("#sensor3").css("cssText","background:url('images/"+titles[chartIndex]+".png');background-repeat:no-repeat;backgroud-size:300px 200px;background-position:center;");
         	             drawLineGraphForSensors(titles[2],cyclesForChartJS,sensorReadingsForChartJs,"sensor3","#FF80AB",latestVal[2], 9021.73, 9244.59,isUpdate);             
         	             google.charts.load('current', {'packages':['corechart']});
-                         google.charts.setOnLoadCallback(function(){drawGaugeChart(titles[2],"donut3",latestVal[2], 9021.73, 9244.59,getSensorColor(3,latestVal[2]),"#B2DFDB",units[2], "sensor3Val",sensors[2])});
+                         google.charts.setOnLoadCallback(function(){drawGaugeChart(titles[2],"donut3",Math.round(latestVal[2]), 9021.73, 9244.59,getSensorColor(3,latestVal[2]),"#B2DFDB",units[2], "sensor3Val",sensors[2])});
                     }
                     else if(chartIndex == 3){
                          $("#sensor4").css("cssText","background:url('images/"+titles[chartIndex]+".png');background-repeat:no-repeat;backgroud-size:300px 200px;background-position:center;");
         	             drawLineGraphForSensors(titles[3],cyclesForChartJS,sensorReadingsForChartJs,"sensor4","#42A5F5",latestVal[3],1382.25, 1441.49,isUpdate);  
         	             google.charts.load('current', {'packages':['corechart']});
-                         google.charts.setOnLoadCallback(function(){drawGaugeChart(titles[3],"donut4",latestVal[3],1382.25, 1441.49,getSensorColor(4,latestVal[3]),"#FDD835",units[3], "sensor4Val",sensors[3])});
+                         google.charts.setOnLoadCallback(function(){drawGaugeChart(titles[3],"donut4",Math.round(latestVal[3]),1382.25, 1441.49,getSensorColor(4,latestVal[3]),"#FDD835",units[3], "sensor4Val",sensors[3])});
                     }
                     cyclesForChartJS = [];
                     sensorReadingsForChartJs = [];
@@ -465,7 +465,7 @@
           
             // To show Gauge charts with current reading
             function drawGaugeChart(title,id,donutvalue,Min_value,Max_value,hoverbgcolour,bgcolour, unit, chartLabel, sensorname){
-                donutvalue = donutvalue.toFixed(3);
+              //  donutvalue = donutvalue.toFixed(3);
                 var donutmin = Min_value + ((Max_value - Min_value)/1.5);
                 $("#"+chartLabel).html(donutvalue+ " - " +title+" in "+ unit + "<br> ( " + sensorname + " )");
                 var opts = {
