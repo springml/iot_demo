@@ -465,7 +465,7 @@
           
             // To show Gauge charts with current reading
             function drawGaugeChart(title,id,donutvalue,Min_value,Max_value,hoverbgcolour,bgcolour, unit, chartLabel, sensorname){
-                donutvalue = Math.round(donutvalue);
+                donutvalue = donutvalue.toFixed(3);
                 var donutmin = Min_value + ((Max_value - Min_value)/1.5);
                 $("#"+chartLabel).html(donutvalue+ " - " +title+" in "+ unit + "<br> ( " + sensorname + " )");
                 var opts = {
