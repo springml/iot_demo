@@ -55,12 +55,15 @@
         <div class="navbar navbar-inverse navbar-fixed-top" role="navigation"> 
             <div class="container-fluid">
             	<div class="navbar-header">
-                	<a class="navbar-brand" style="color: white" href="./map.html"> Oil&Gas Demo </a>
+                	<a class="navbar-brand" style="color: white" href="./map.html"> Oil & Gas Demo </a>
 	        </div>
 		<div class="navbar-collapse collapse">
                             <ul class="nav navbar-nav navbar-left">
                                 <li>
                                     <a href="#">Architechture</a>
+                                </li>
+                                <li>
+                                    <a href="#">ML Model</a>
                                 </li>
                                 <li>
                                     <a href="https://cloud.google.com/iot-core/">Google Cloud IOT</a>
@@ -118,7 +121,7 @@
             var getOilRigsAjaxCall = function getOilRigs() {
                 var map = new google.maps.Map(document.getElementById('map'), {
                     zoom: 4,
-                    center: new google.maps.LatLng(27, -85),
+                    center: new google.maps.LatLng(38.720427,-95.96803),
                     mapTypeId: google.maps.MapTypeId.ROADMAP
                 });
 
