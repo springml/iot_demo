@@ -3,16 +3,17 @@
 	[
 
 {
-	"Name": "SK",
-	"Latitude": 38.720427,
-	"Longtitude": -95.96803,
+  "Name": "SAR-102",
+        "Latitude": 38.720427,
+        "Longtitude": -95.96803,
 	"Units": [["Unit2", 210]]
 },
+
 {
-	"Name": "TK",
-	"Latitude": 47.760427,
-	"Longtitude": -101.369803,
-	"Units": [["Unit1", 230]] 
+        "Name": "BPP-220",
+        "Latitude": 47.760427,
+        "Longtitude": -101.369803,	
+"Units": [["Unit1", 230]] 
 	
 }]
 }
