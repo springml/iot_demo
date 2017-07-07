@@ -151,7 +151,7 @@ def parse_command_line_args():
 		help='CA root certificate. Get from https://pki.google.com/roots.pem')
 	parser.add_argument(
 		'--publish_latency',
-		default=.1,
+		default=.2,
 		help='Publish Latency'
 		)
 
@@ -212,7 +212,7 @@ def get_plants_info(plants_info_dir, num_plants):
 def main():
 	args = parse_command_line_args()
 
-	registry_id = 'cloudiot_device_manager_registry_1497594495'
+	registry_id = 'cloudiot_device_manager_registry_18923213'
 	#registry_id = 'cloudiot_device_manager_registry_{}'.format(int(time.time()))
 
 	#Looking up already called registry based upon registry_id specified above
