@@ -1,0 +1,41 @@
+package com.springml.device.service.api;
+
+import com.springml.device.service.model.DeviceSensorReadingsOverTimeResponse;
+import com.springml.device.service.model.DevicesLifeCyclePredictionResponse;
+import com.springml.device.service.model.OilRig;
+import com.springml.device.service.model.OilRigsResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.ArrayList;
+
+/**
+ * Device LifecyclePrediction Visualisation Server that has main apis
+ * used by Device LifeCycle Prediction visualisation layer
+ */
+public class DeviceLifecyclePredictionVisualisationServer {
+    @Autowired
+    OilRigsDevicesManager oilRigsDevicesManager;
+
+
+    public DevicesLifeCyclePredictionResponse getDeviceLifecyclePredictions(String oilRigId, double latitude, double longtitude, int durationInMins) {
+        DevicesLifeCyclePredictionResponse devicesLifeCyclePredictionResponse = new DevicesLifeCyclePredictionResponse();
+        devicesLifeCyclePredictionResponse.setResponse(oilRigsDevicesManager.getDevicesLifeCyclePredictions(oilRigId, latitude, longtitude, durationInMins));
+        return devicesLifeCyclePredictionResponse;
+
+    }
+
+    public DeviceSensorReadingsOverTimeResponse getSensorReadingsForDevice(String industrialPlantId, String deviceId, int durationInMins) {
+
+        return oilRigsDevicesManager.getOilRigDeviceSensorReadings(industrialPlantId, deviceId, durationInMins);
+    }
+
+    public OilRigsResponse getOilRigs(int durationInMins) {
+
+        OilRigsResponse oilRigsResponse = new OilRigsResponse();
+        ArrayList<OilRig> oilrigs = oilRigsDevicesManager.getOilRigs(durationInMins);
+        oilRigsResponse.setOilRigs(oilrigs);
+        return oilRigsResponse;
+    }
+
+
+}

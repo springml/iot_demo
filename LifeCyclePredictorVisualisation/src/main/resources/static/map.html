@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title> OilRigs Life Cycle Prediction </title>
+    <meta name="viewport" content="initial-scale=1.0">
+    <meta charset="utf-8">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="https://maps.google.com/maps/api/js?sensor=false&key=AIzaSyAQ779ww2LNyXCSHmFuw2EziA7CJDsu76c" type="text/javascript"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script type="text/javascript" src="js/jquery.maphilight.js"></script>
+    <script src="js/qtip.js"> </script>
+    <link rel="stylesheet" type="text/css" href="css/qtip.css" />
+    <style>
+        html,body {
+            margin: 0;
+            padding: 0;
+            background:#F2F2F2;
+
+        }
+
+        .loader {
+          border: 16px solid #f3f3f3;
+          border-radius: 50%;
+          border-top: 16px solid #3498db;
+          border-bottom: 16px solid #3498db;
+          width: 120px;
+          height: 120px;
+          -webkit-animation: spin 2s linear infinite;
+          -moz-animation: spin 2s linear infinite;
+          -ms-animation: spin 2s linear infinite;
+          -o-animation: spin 2s linear infinite;
+          animation: spin 2s linear infinite;
+          position: fixed;
+          top:30%;
+          left: 50%;
+          z-index: 1;
+        }
+
+        @-webkit-keyframes spin {
+          0% { -webkit-transform: rotate(0deg); }
+          100% { -webkit-transform: rotate(360deg); }
+        }
+
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-container" style="padding:0px 10px 10px;background:#F2F2F2;">
+        <div class="navbar navbar-inverse navbar-fixed-top" role="navigation"> 
+            <div class="container-fluid">
+            	<div class="navbar-header">
+                	<a class="navbar-brand" style="color: white" href="./map.html"> Oil & Gas Demo </a>
+	        </div>
+		<div class="navbar-collapse collapse">
+                            <ul class="nav navbar-nav navbar-left">
+                                <li>
+                                    <a href="#">Architechture</a>
+                                </li>
+                                <li>
+                                    <a href="#">ML Model</a>
+                                </li>
+                                <li>
+                                    <a href="https://cloud.google.com/iot-core/">Google Cloud IOT</a>
+                                </li>
+                           </ul>
+                </div>
+            
+            </div>
+
+        </div> 
+        <div class="loader" style="display: none;"></div> 
+
+        <div style="margin-top: 5%;background:#F2F2F2;" class='row' > <!-- Removed display flex -->            
+
+            <div class="col-md-6">
+
+                <div id="map" style="width:680px;height:650px;margin-left:1.9%"></div>
+            </div>
+
+    	    <div style="margin-left:4.3%" id='oilRig' class='col-md-4'>
+    		    <div>
+                    <img src="images/oilrig1.jpg" width="550" height="650" class="map" usemap="#sensormap"/>
+                    <h1 style="text-align:center;" id="img_desc"> </h1>
+                </div>
+            </div>
+	   
+
+        </div>
+    </div> <!-- Main container end -->
+
+    <map name="sensormap">
+        <area alt="Crown Block" shape="circle" coords="259,24,9.8" href="" class="circle" id="crown_block" data-maphilight='{"alwaysOn": false,"stroke":false,"fillColor":"62ce54","fillOpacity":1}'/>
+        <area alt="Traveling Block" shape="circle" coords="256,283,9.8" href="" class="circle" id="traveling_block" data-maphilight='{"alwaysOn": false,"stroke":false,"fillColor":"62ce54","fillOpacity":1}'/>
+        <area alt="Top Drive" shape="circle" coords="255,311,9.8" href="" class="circle" id="top_drive" data-maphilight='{"alwaysOn": false,"stroke":false,"fillColor":"62ce54","fillOpacity":1}'/>
+    </map>
+
+    <script>
+    	var deviceName;
+    	var latitude;
+    	var longtitude;
+        var remainingLifeCycle;
+        var rulValues = [];
+        var deviceone;
+        var devicetwo;
+        var devicethree;
+        var devices_rul_duration = 10;
+        var oilrigs_duration = 10;
+	var googlemap_refresh_interval = 20*1000; // in millisecs
+	var device_refresh_interval = 20*1000; // in millisecs
+
+
+
+        $(document).ready(function(){
+            // To get oil rig details
+            var getOilRigsAjaxCall = function getOilRigs() {
+                var map = new google.maps.Map(document.getElementById('map'), {
+                    zoom: 4,
+                    center: new google.maps.LatLng(38.720427,-95.96803),
+                    mapTypeId: google.maps.MapTypeId.ROADMAP
+                });
+
+                // To get oil rig locations from rest api
+                function getOilRigsLocation() {
+
+                    var locationsjson = $.ajax({
+                        type: "GET",
+                        url: '/getOilRigs?durationInMins='+oilrigs_duration,
+                        async: false
+                    }).responseText;
+                    var locations = eval('(' + locationsjson + ')');
+                    return locations;
+                }
+
+                var OilRigLocationObjects = getOilRigsLocation();
+                var locationsdata = [];
+
+                // To get array of locations from json objects
+                for (var loactionObjects in OilRigLocationObjects) {
+                    var OilRigLocationObject = OilRigLocationObjects[loactionObjects];
+                    var locationsArray = [];
+                    if (typeof OilRigLocationObject === "object") {
+                        for (var singleLocationObject in OilRigLocationObject) {
+                            var locationArray = [];
+                            var locationObject = OilRigLocationObject[singleLocationObject];
+                            if (typeof locationObject === "object") {
+                                for (var locationItem in locationObject)
+                                    locationArray.push(locationObject[locationItem]);
+                            }
+                            locationsArray.push(locationArray);
+                        }
+                    }
+                    if (locationsArray.length) {
+                        locationsdata.push(locationsArray);
+                    }
+                }
+
+                var locations = locationsdata[0];
+                var marker;
+                var infowindow = new google.maps.InfoWindow();
+                var totalDeviceCount = 0;
+                if(locations.length)
+                    totalDeviceCount = locations.length;
+                
+                var icon_image;
+                for (var i = 0; i < totalDeviceCount ; i++) { 
+                    remainingLifeCycle = locations[i][2];
+                    if(remainingLifeCycle > 60){
+                        icon_image = "http://maps.google.com/mapfiles/ms/micons/green.png";
+                    }else if(remainingLifeCycle <= 60 && remainingLifeCycle > 0){
+                        icon_image = "http://maps.google.com/mapfiles/ms/micons/yellow.png";
+                    }else{
+                        icon_image = "http://maps.google.com/mapfiles/ms/micons/red.png";
+                    }
+                    marker = new google.maps.Marker({
+                        icon: icon_image,
+                        position: new google.maps.LatLng(locations[i][1], locations[i][3]),
+                        map: map
+                    });
+                    google.maps.event.addListener(marker, 'mouseover', (function(marker, i) {
+                        return function() {
+                            infowindow.setContent(locations[i][0] );
+                            infowindow.open(map, marker);
+                        }
+                    })(marker, i));
+                    google.maps.event.addListener(marker, 'click', (function(marker, i) {
+                        return function() {
+                            $(".loader").css('display','block');
+                    		deviceName = locations[i][0];
+                    		latitude = locations[i][1];
+                            remainingLifeCycle = locations[i][2];
+                    		longtitude = locations[i][3]; 
+                            get_device_lifecycleAjaxCall();
+                        }
+                    })(marker, i));
+                }
+            } 
+            
+            // Ajax call to get device's RUL values from rest api            
+            function getDevicesAndRulList(device,latitude,longtitude){  
+
+                var getRulListUrl = '/getDeviceLifecyclePredictions?oilRigId='+device+'&latitude='+latitude+'&longtitude='+longtitude+'&durationInMins='+ devices_rul_duration ;
+
+                var devicesData =  $.ajax({
+                        type: "GET",
+                        url: getRulListUrl,
+                        async: false
+                }).responseText;
+
+                var devicesAndRulList = eval('(' + devicesData + ')');
+                return devicesAndRulList;
+            }
+
+            // To get device's RUL values
+            function get_device_lifecycleAjaxCall(){
+                if( deviceName != null ) {
+                    var deviceJsonObjects =  getDevicesAndRulList(deviceName,latitude,longtitude);
+                    var chartData = [];
+                    var devicesNames = [];
+                    rulValues = [];
+                    for (var deviceJsonIndex in deviceJsonObjects) {
+                        var deviceJsonObject = deviceJsonObjects[deviceJsonIndex];
+
+                        if (typeof deviceJsonObject === "object") {
+                            for (var deviceObjects in deviceJsonObject) {
+                                var deviceArray = [];
+                                var singleDeviceObject = deviceJsonObject[deviceObjects];
+                                var curDevName;
+                                if (typeof singleDeviceObject === "object") {
+                                    for(var deviceObject in singleDeviceObject){
+
+                                        if(deviceObject==="name"){
+                                            devicesNames.push(singleDeviceObject[deviceObject]);
+                                            curDevName = singleDeviceObject[deviceObject];
+                                            }
+                                        else if(deviceObject==="rulVal"){
+                                            rulValues[curDevName]=singleDeviceObject[deviceObject];
+                                            colorChange(singleDeviceObject[deviceObject],curDevName);
+
+                                            }
+                                        deviceArray.push(singleDeviceObject[deviceObject]);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    console.log("after getting rul list");
+                    console.log(rulValues);
+console.log(rulValues.length);
+                   // for(var rulIndex=0;rulIndex<  rulValues.length;rulIndex++){
+                     //   colorChange(rulValues[devicesNames[rulIndex]],rulIndex,devicesNames[rulIndex]);
+                    //}
+                    addTooltip();
+                    $(".loader").css('display','none');
+                }
+            }
+
+            getOilRigsAjaxCall();
+            setInterval(getOilRigsAjaxCall , googlemap_refresh_interval);
+            setInterval(get_device_lifecycleAjaxCall, device_refresh_interval);
+      
+            // To show current and historical readings of each device while clicking on device circles
+            $('.circle').click(function(e) { 
+                e.preventDefault();
+                $("#chartType").css("display","block");
+                $("input:radio:first").prop("checked", true).trigger("click");
+                    var titles = [];
+                    //var unit = 'Unit_1';
+                    
+                    var max = 270;
+                    var target_id = e.target.id;
+                    var device_id = $("#"+target_id).data('device_id');
+
+                        rulValue = rulValues[device_id];
+                    window.location.href = "ChartIndexWithTimegraph.html?deviceName=" + deviceName + "&id=" + e.target.id + "&rulValue=" + rulValue + "&device_id=" + device_id ;
+            }); 
+        }); // Ready End
+
+        // To change device color as red
+    	function colorRed(deviceId){
+            $("#"+deviceId).data('maphilight', {"stroke":0, "alwaysOn": true, "fillColor":"ff0000", "fillOpacity":1}).trigger('alwaysOn.maphilight');
+        }
+
+        // To change device color as yellow
+        function colorYellow(deviceId){
+            $("#"+deviceId).data('maphilight', {"stroke":0, "alwaysOn": true, "fillColor":"fdd835", "fillOpacity":1}).trigger('alwaysOn.maphilight');
+        }
+
+        // To change device color as green
+        function colorGreen(deviceId){
+            $("#"+deviceId).data('maphilight', {"stroke":0, "alwaysOn": true, "fillColor":"62ce54", "fillOpacity":1}).trigger('alwaysOn.maphilight');
+        }
+
+        $('.map').maphilight();
+
+        // To check status of device life cycle value based on threshold value 
+        function addTooltip(){
+            $('area').each(function () {
+                var deviceElement = $(this),
+                    map = deviceElement.parent(),
+                    image = $('img[usemap="#'+map.attr('name')+'"]');
+                var data = $(this).data('maphilight') || {};
+                var rulvalue = $(this).data('value');
+                
+                deviceElement.qtip({
+                    content: {
+                        text: deviceName + " -> " +deviceElement.attr('alt') + " , " + rulvalue, // Attempt to grab content from #statesMap-<State> elements first
+                        attr: 'alt' // No content? Grab the content from the 'alt' attribute
+                    },
+                    position: {
+                        viewport: image
+                    },
+                    show: {
+                        event: 'mouseover',
+                        solo: true
+                    },
+                    hide: {
+                        // Allow the user to hover on the tooltip
+                        fixed: true,
+                        delay: 200
+                    },
+                    style: {
+                        classes: 'qtip-tipsy'
+                     }
+                });
+            });
+        }//end addTooltip
+
+        // To change device color based on threshold value
+        function colorChange(rulVal,device_id){
+            console.log("colorChangeCalled");
+            console.log(rulVal);
+            console.log(device_id);
+            var deviceId = '';
+    		if(device_id=="Unit0") {
+                deviceId='crown_block';
+                $("#"+deviceId).data('value', rulVal);
+                $("#"+deviceId).data('device_id', device_id);
+            }
+    		if(device_id=="Unit1") {
+                deviceId='traveling_block';
+                $("#"+deviceId).data('value', rulVal);
+                $("#"+deviceId).data('device_id', device_id);
+            }
+    		if(device_id=="Unit2") {
+                deviceId='top_drive';
+                $("#"+deviceId).data('value', rulVal);
+                $("#"+deviceId).data('device_id', device_id);
+            }
+    
+        	if(rulVal>60){
+        		colorGreen(deviceId);
+        	}
+            else if(rulVal <= 60 && rulVal > 0){
+                colorYellow(deviceId);
+            }
+        	else{
+        		colorRed(deviceId);
+        	}
+        }
+    </script>
+</body>
+
+</html>
