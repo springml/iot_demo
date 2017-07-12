@@ -151,7 +151,7 @@ def parse_command_line_args():
 		help='CA root certificate. Get from https://pki.google.com/roots.pem')
 	parser.add_argument(
 		'--publish_latency',
-		default=.2,
+		default=.08,
 		help='Publish Latency'
 		)
 
