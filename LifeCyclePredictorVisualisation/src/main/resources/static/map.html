@@ -95,9 +95,9 @@
     </div> <!-- Main container end -->
 
     <map name="sensormap">
-        <area alt="Crown Block" shape="circle" coords="259,24,9.8" href="" class="circle" id="crown_block" data-maphilight='{"alwaysOn": false,"stroke":false,"fillColor":"62ce54","fillOpacity":1}'/>
-        <area alt="Traveling Block" shape="circle" coords="256,283,9.8" href="" class="circle" id="traveling_block" data-maphilight='{"alwaysOn": false,"stroke":false,"fillColor":"62ce54","fillOpacity":1}'/>
-        <area alt="Top Drive" shape="circle" coords="255,311,9.8" href="" class="circle" id="top_drive" data-maphilight='{"alwaysOn": false,"stroke":false,"fillColor":"62ce54","fillOpacity":1}'/>
+        <area alt="Crown Block" shape="circle" coords="259,24,9.8" href="" class="circle" id="crown_block" data-maphilight='{"alwaysOn": false,"stroke":false,"fillColor":"","fill":false,"fillOpacity":1}'/>
+        <area alt="Traveling Block" shape="circle" coords="256,283,9.8" href="" class="circle" id="traveling_block" data-maphilight='{"alwaysOn": false,"stroke":false,"fillColor":"","fill":false,"fillOpacity":1}'/>
+        <area alt="Top Drive" shape="circle" coords="255,311,9.8" href="" class="circle" id="top_drive" data-maphilight='{"alwaysOn": false,"stroke":false,"fillColor":"","fill":false,"fillOpacity":1}'/>
     </map>
 
     <script>
@@ -106,26 +106,31 @@
     	var longtitude;
         var remainingLifeCycle;
         var rulValues = [];
+	var lastReadRULValues = [];
         var deviceone;
         var devicetwo;
         var devicethree;
-        var devices_rul_duration = 10;
+        var devices_rul_duration =10;
         var oilrigs_duration = 10;
-	var googlemap_refresh_interval = 20*1000; // in millisecs
-	var device_refresh_interval = 20*1000; // in millisecs
-
+	var googlemap_refresh_interval = 30*1000; // in millisecs
+	//var device_refresh_interval = 25*1000; // in millisecs
+	var curMarker;
+	var map;
+	var oilrigsMarkers = [];
 
 
         $(document).ready(function(){
             // To get oil rig details
             var getOilRigsAjaxCall = function getOilRigs() {
-                var map = new google.maps.Map(document.getElementById('map'), {
+		if(map==null){
+                 map = new google.maps.Map(document.getElementById('map'), {
                     zoom: 4,
                     center: new google.maps.LatLng(38.720427,-95.96803),
                     mapTypeId: google.maps.MapTypeId.ROADMAP
                 });
+		}
 
-                // To get oil rig locations from rest api
+                // To get oil rig locations from resnt api
                 function getOilRigsLocation() {
 
                     var locationsjson = $.ajax({
@@ -134,67 +139,68 @@
                         async: false
                     }).responseText;
                     var locations = eval('(' + locationsjson + ')');
+                   // console.log(locations);
                     return locations;
                 }
 
                 var OilRigLocationObjects = getOilRigsLocation();
-                var locationsdata = [];
 
-                // To get array of locations from json objects
-                for (var loactionObjects in OilRigLocationObjects) {
-                    var OilRigLocationObject = OilRigLocationObjects[loactionObjects];
-                    var locationsArray = [];
-                    if (typeof OilRigLocationObject === "object") {
-                        for (var singleLocationObject in OilRigLocationObject) {
-                            var locationArray = [];
-                            var locationObject = OilRigLocationObject[singleLocationObject];
-                            if (typeof locationObject === "object") {
-                                for (var locationItem in locationObject)
-                                    locationArray.push(locationObject[locationItem]);
-                            }
-                            locationsArray.push(locationArray);
-                        }
-                    }
-                    if (locationsArray.length) {
-                        locationsdata.push(locationsArray);
-                    }
-                }
 
-                var locations = locationsdata[0];
+                var locations = OilRigLocationObjects["oilRigs"];;
                 var marker;
                 var infowindow = new google.maps.InfoWindow();
                 var totalDeviceCount = 0;
+               // console.log(locations.length);
+               // console.log(locations[0]["remainingLifeCycle"]);
                 if(locations.length)
                     totalDeviceCount = locations.length;
                 
                 var icon_image;
                 for (var i = 0; i < totalDeviceCount ; i++) { 
-                    remainingLifeCycle = locations[i][2];
-                    if(remainingLifeCycle > 60){
+                    remainingLifeCycle = locations[i]["remainingLifeCycle"];
+
+                    if(remainingLifeCycle > 60 ){
                         icon_image = "http://maps.google.com/mapfiles/ms/micons/green.png";
                     }else if(remainingLifeCycle <= 60 && remainingLifeCycle > 0){
                         icon_image = "http://maps.google.com/mapfiles/ms/micons/yellow.png";
                     }else{
                         icon_image = "http://maps.google.com/mapfiles/ms/micons/red.png";
                     }
-                    marker = new google.maps.Marker({
-                        icon: icon_image,
-                        position: new google.maps.LatLng(locations[i][1], locations[i][3]),
-                        map: map
-                    });
+
+            marker = new google.maps.Marker({
+                icon: icon_image,
+                position: new google.maps.LatLng(locations[i]["latitude"], locations[i]["longtitude"]),
+                map: map,
+                optimized:false
+            });
+            var oldmarker = oilrigsMarkers[locations[i]["name"]];
+            if(oldmarker!=null){
+                oldmarker.setMap(null);
+            }
+		    marker.set("rulVal",locations[i]["remainingLifeCycle"]);
+		    oilrigsMarkers[locations[i]["name"]]=marker;
+
+
+
                     google.maps.event.addListener(marker, 'mouseover', (function(marker, i) {
                         return function() {
-                            infowindow.setContent(locations[i][0] );
+                            infowindow.setContent(locations[i]["name"] );
                             infowindow.open(map, marker);
                         }
                     })(marker, i));
                     google.maps.event.addListener(marker, 'click', (function(marker, i) {
                         return function() {
                             $(".loader").css('display','block');
-                    		deviceName = locations[i][0];
-                    		latitude = locations[i][1];
-                            remainingLifeCycle = locations[i][2];
-                    		longtitude = locations[i][3]; 
+                    		deviceName = locations[i]["name"];
+                    		latitude = locations[i]["latitude"];
+                            remainingLifeCycle = locations[i]["remainingLifeCycle"];
+                    		longtitude = locations[i]["longtitude"];
+				curMarker = marker;
+				var lastrulListForMarker = [];
+				if(curMarker.get("lastReadVal")==null)
+				{
+					curMarker.set("lastReadVal",lastrulListForMarker);
+				}
                             get_device_lifecycleAjaxCall();
                         }
                     })(marker, i));
@@ -220,49 +226,42 @@
             function get_device_lifecycleAjaxCall(){
                 if( deviceName != null ) {
                     var deviceJsonObjects =  getDevicesAndRulList(deviceName,latitude,longtitude);
+
                     var chartData = [];
                     var devicesNames = [];
                     rulValues = [];
+
+		$(".circle").data('maphilight', {"stroke":0, "alwaysOn": false, "fillColor": false, "fillOpacity":1}).trigger('alwaysOn.maphilight');
                     for (var deviceJsonIndex in deviceJsonObjects) {
                         var deviceJsonObject = deviceJsonObjects[deviceJsonIndex];
 
                         if (typeof deviceJsonObject === "object") {
                             for (var deviceObjects in deviceJsonObject) {
-                                var deviceArray = [];
+                               // var deviceArray = [];
                                 var singleDeviceObject = deviceJsonObject[deviceObjects];
                                 var curDevName;
                                 if (typeof singleDeviceObject === "object") {
-                                    for(var deviceObject in singleDeviceObject){
-
-                                        if(deviceObject==="name"){
-                                            devicesNames.push(singleDeviceObject[deviceObject]);
-                                            curDevName = singleDeviceObject[deviceObject];
-                                            }
-                                        else if(deviceObject==="rulVal"){
-                                            rulValues[curDevName]=singleDeviceObject[deviceObject];
-                                            colorChange(singleDeviceObject[deviceObject],curDevName);
-
-                                            }
-                                        deviceArray.push(singleDeviceObject[deviceObject]);
-                                    }
+                                        curDevName = singleDeviceObject["name"];
+                                        rulValues[curDevName]=singleDeviceObject["rulVal"];
+                                        colorChange(singleDeviceObject["rulVal"],curDevName,singleDeviceObject["cycle"]);
                                 }
                             }
                         }
                     }
-                    console.log("after getting rul list");
-                    console.log(rulValues);
-console.log(rulValues.length);
-                   // for(var rulIndex=0;rulIndex<  rulValues.length;rulIndex++){
-                     //   colorChange(rulValues[devicesNames[rulIndex]],rulIndex,devicesNames[rulIndex]);
-                    //}
+                    
+                  
                     addTooltip();
                     $(".loader").css('display','none');
                 }
             }
-
+            function refreshPage(){
+             getOilRigsAjaxCall();
+             get_device_lifecycleAjaxCall();
+            }
             getOilRigsAjaxCall();
-            setInterval(getOilRigsAjaxCall , googlemap_refresh_interval);
-            setInterval(get_device_lifecycleAjaxCall, device_refresh_interval);
+
+            setInterval(refreshPage , googlemap_refresh_interval);
+            //setInterval(get_device_lifecycleAjaxCall, device_refresh_interval);
       
             // To show current and historical readings of each device while clicking on device circles
             $('.circle').click(function(e) { 
@@ -332,10 +331,10 @@ console.log(rulValues.length);
         }//end addTooltip
 
         // To change device color based on threshold value
-        function colorChange(rulVal,device_id){
-            console.log("colorChangeCalled");
-            console.log(rulVal);
-            console.log(device_id);
+        function colorChange(rulVal,device_id,cycle){
+
+	//var lastReadVal = curMarker.get("lastReadVal");
+	//var isDead = curMarker.get("isDead");
             var deviceId = '';
     		if(device_id=="Unit0") {
                 deviceId='crown_block';
@@ -358,10 +357,22 @@ console.log(rulValues.length);
         	}
             else if(rulVal <= 60 && rulVal > 0){
                 colorYellow(deviceId);
+                if(curMarker.getIcon()=="http://maps.google.com/mapfiles/ms/micons/green.png")
+                {
+                    curMarker.setIcon("http://maps.google.com/mapfiles/ms/micons/yellow.png");
+			        curMarker.setMap(map);
+                }
             }
         	else{
-        		colorRed(deviceId);
+        	    if(rulVal<=0){
+                    colorRed(deviceId);
+                    curMarker.setIcon("http://maps.google.com/mapfiles/ms/micons/red.png");
+			        curMarker.setMap(map);
+			    }
+			
         	}
+	//lastReadVal[device_id] = rulValues[device_id];
+	//curMarker.set("lastReadVal",lastReadVal);
         }
     </script>
 </body>
