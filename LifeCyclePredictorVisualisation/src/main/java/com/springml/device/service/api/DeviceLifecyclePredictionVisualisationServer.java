@@ -6,6 +6,8 @@ import com.springml.device.service.model.OilRig;
 import com.springml.device.service.model.OilRigsResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 /**
@@ -18,8 +20,11 @@ public class DeviceLifecyclePredictionVisualisationServer {
 
 
     public DevicesLifeCyclePredictionResponse getDeviceLifecyclePredictions(String oilRigId, double latitude, double longtitude, int durationInMins) {
+        System.out.println("Start time of getlifecycleprediction"+LocalDateTime.now());
         DevicesLifeCyclePredictionResponse devicesLifeCyclePredictionResponse = new DevicesLifeCyclePredictionResponse();
         devicesLifeCyclePredictionResponse.setResponse(oilRigsDevicesManager.getDevicesLifeCyclePredictions(oilRigId, latitude, longtitude, durationInMins));
+        System.out.println("End time of getlifecycleprediction"+ LocalDateTime.now());
+
         return devicesLifeCyclePredictionResponse;
 
     }
