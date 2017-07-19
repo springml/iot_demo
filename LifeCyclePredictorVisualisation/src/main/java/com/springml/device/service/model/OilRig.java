@@ -8,6 +8,16 @@ public class OilRig {
     Double latitude;
     Double Longtitude;
     Double remainingLifeCycle;
+    boolean isDead;
+
+    public boolean isDead() {
+        return isDead;
+    }
+
+    public void setDead(boolean dead) {
+        isDead = dead;
+    }
+
 
     public Double getRemainingLifeCycle() {
         return remainingLifeCycle;
@@ -40,5 +50,9 @@ public class OilRig {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String toString(){
+        return "Name:"+this.name + " - Lat"+this.latitude+"-Long"+this.getLongtitude()+ "- isDead"+this.isDead;
     }
 }

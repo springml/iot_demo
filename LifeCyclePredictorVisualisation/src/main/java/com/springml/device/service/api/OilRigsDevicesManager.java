@@ -5,13 +5,11 @@ import com.google.cloud.bigquery.*;
 import com.springml.device.service.model.Device;
 import com.springml.device.service.model.DeviceSensorReadingsOverTimeResponse;
 import com.springml.device.service.model.OilRig;
+import org.apache.tomcat.jni.Time;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
@@ -62,14 +60,27 @@ public class OilRigsDevicesManager {
     public ArrayList<OilRig> getOilRigs(int durationInMins) {
         ArrayList<OilRig> oilRigs = new ArrayList<OilRig>();
         //callbigquery to get list of IndustrialPlants and form array list
-        String industrialPlantsQuery = generateIndustrialPlantsQuery(getFromDate(durationInMins));
-        System.out.println("the query is " + industrialPlantsQuery);
-        Job industrialPlantsJob = createJob(industrialPlantsQuery, bigQueryClient);
-        waitForJobCompletion(industrialPlantsJob);
-        QueryResponse response = bigQueryClient.getQueryResults(industrialPlantsJob.getJobId());
-        QueryResult result = processResponseAndGetResult(response);
-        Iterator<List<FieldValue>> rowItr = result.iterateAll().iterator();
+        String industrialPlantsQuery = generateIndustrialPlantsQueryTwo(getFromDate((durationInMins*60)));
 
+       // Job industrialPlantsJob = createJob(industrialPlantsQuery, bigQueryClient);
+       // waitForJobCompletion(industrialPlantsJob);
+        QueryRequest request = QueryRequest.newBuilder(industrialPlantsQuery).build();
+        logger.info("The query to get oilrigs is "+industrialPlantsQuery);
+        QueryResponse response = bigQueryClient.query(request);
+        while (!response.jobCompleted()) {
+            try {
+                Thread.sleep(1000);
+                response = bigQueryClient.getQueryResults(response.getJobId());
+            } catch (InterruptedException ie) {
+                logger.warning("exception while waiting for the completion of adcount big query execution");
+            }
+        }
+       // QueryResponse response = bigQueryClient.getQueryResults(industrialPlantsJob.getJobId());
+        QueryResult result = processResponseAndGetResult(response);
+      //  System.out.println("the time at the end of query execution is " + LocalDateTime.now());
+
+        Iterator<List<FieldValue>> rowItr = result.iterateAll().iterator();
+        logger.info("The result has rows returned?"+rowItr.hasNext());
         while (rowItr.hasNext()) {
             List<FieldValue> columns = rowItr.next();
             OilRig oilRig = new OilRig();
@@ -88,11 +99,28 @@ public class OilRigsDevicesManager {
                             if (loopCount == 3) {
                                 oilRig.setRemainingLifeCycle(columns.get(loopCount).getDoubleValue());
                             }
+                            else{
+                                if (loopCount == 4) {
+                                    FieldValue columnVal = columns.get(loopCount);
+
+                                    long countForLastFewSecs = 0;
+                                            if(!columnVal.isNull())
+                                                countForLastFewSecs= columnVal.getLongValue();
+                                    boolean isDeadDevice = false;
+                                    if(countForLastFewSecs>0)
+                                        isDeadDevice = false;
+                                    else
+                                        isDeadDevice = true;
+                                    oilRig.setDead(isDeadDevice);
+                                }
+
+                            }
                         }
                     }
                 }
 
             }
+            logger.info(oilRig.toString());
             oilRigs.add(oilRig);
         }
         return oilRigs;
@@ -142,13 +170,29 @@ public class OilRigsDevicesManager {
         return fetchIndustrialPlantsQuery;
     }
 
+
     private String fetchDeviceAndLatestPreditionsQuery(String industrialPlantName, double latitude, double longtitude, String fromDate) {
-        String fetchIndustrialPlantsQuery = "SELECT UnitNumber,RemainingOperationCycles from (SELECT   RemainingOperationCycles,Cycle,UnitNumber as deviceId,IndustrialPlantName as plant from [" + tableName + "]  where IndustrialPlantName like '" + industrialPlantName + "' AND Latitude=" + latitude + " AND Longtitude=" + longtitude + " and PredictedDate >  DATETIME(\"" + fromDate + "\") \n)  FirstTable JOIN (SELECT Max(Cycle) AS MaxCycle,UnitNumber,IndustrialPlantName\n" +
+        String fetchIndustrialPlantsQuery = "SELECT UnitNumber,RemainingOperationCycles,Cycle from (SELECT   RemainingOperationCycles,Cycle,UnitNumber as deviceId,IndustrialPlantName as plant from [" + tableName + "]  where IndustrialPlantName like '" + industrialPlantName + "' AND Latitude=" + latitude + " AND Longtitude=" + longtitude + " and PredictedDate >  DATETIME(\"" + fromDate + "\") \n)  FirstTable JOIN (SELECT Max(Cycle) AS MaxCycle,UnitNumber,IndustrialPlantName\n" +
                 "FROM \n" +
                 "[" + tableName + "]\n" +
                 "WHERE Cycle is NOT NULL AND IndustrialPlantName like '" + industrialPlantName + "' AND Latitude=" + latitude + " AND Longtitude=" + longtitude + " and PredictedDate >  DATETIME(\"" + fromDate + "\")\n" +
                 "group by UnitNumber,IndustrialPlantName ) SecondTable \n" +
                 "on FirstTable.deviceId = SecondTable.UnitNumber AND  FirstTable.plant = SecondTable.IndustrialPlantName AND FirstTable.Cycle=SecondTable.MaxCycle\n";
+        return fetchIndustrialPlantsQuery;
+    }
+
+    private String generateIndustrialPlantsQueryTwo(String fromDate) {
+        String fetchIndustrialPlantsQuery = "SELECT IndustrialPlantName,Latitude,Longtitude,RUL,countforlast10secs from (\n" +
+                "SELECT IndustrialPlantName,Latitude,Longtitude,min(RemainingOperationCycles) as RUL FROM \n" +
+                "["+tableName+"] where IndustrialPlantName is not null and PredictedDate >  DATETIME(\""+fromDate+"\")  group by  \n" +
+                "IndustrialPlantName,Latitude,Longtitude) Table1 LEFT JOIN\n" +
+                "\n" +
+                "(SELECT count(*) as countforlast10secs,IndustrialPlantName as plant from \n" +
+                "["+tableName+"] \n" +
+                "where IndustrialPlantName is not null and \n" +
+                "PredictedDate >  DATETIME(\""+getFromDate(20)+"\")\n" +
+                "group by plant ) Table2\n" +
+                "on Table1.IndustrialPlantName = Table2.plant";
         return fetchIndustrialPlantsQuery;
     }
 
@@ -162,10 +206,18 @@ public class OilRigsDevicesManager {
         //query sensor readings for all sensors for the given device from big query table and fill the map
         HashMap<String, HashMap<Long, Double>> sensorsHistoryMap = new HashMap<String, HashMap<Long, Double>>();
         Double latestRulVal = 0d;
-        String sensorReadingsQuery = fetchSensorReadingsForDeviceQuery(industrialPlantId, deviceId, getFromDate(durationInMins));
-        Job sensorReadingsJob = createJob(sensorReadingsQuery, bigQueryClient);
-        waitForJobCompletion(sensorReadingsJob);
-        QueryResponse response = bigQueryClient.getQueryResults(sensorReadingsJob.getJobId());
+        String sensorReadingsQuery = fetchSensorReadingsForDeviceQuery(industrialPlantId, deviceId, getFromDate(durationInMins*60));
+        QueryRequest request = QueryRequest.newBuilder(sensorReadingsQuery).build();
+
+        QueryResponse response = bigQueryClient.query(request);
+        while (!response.jobCompleted()) {
+            try {
+                Thread.sleep(1000);
+                response = bigQueryClient.getQueryResults(response.getJobId());
+            } catch (InterruptedException ie) {
+                logger.warning("exception while waiting for the completion of adcount big query execution");
+            }
+        }
         QueryResult result = processResponseAndGetResult(response);
         Iterator<List<FieldValue>> rowItr = result.iterateAll().iterator();
         HashMap<Long, Double> sensorReadingsOverTimeMapForSensorOne = new HashMap<Long, Double>();
@@ -240,10 +292,18 @@ public class OilRigsDevicesManager {
     public ArrayList<Device> getDevicesLifeCyclePredictions(String industrialPlantId, double latitude, double longtitude, int durationInMins) {
         //query bigquery table for the given oilrigId and get list of devices and its latest predictions
         ArrayList<Device> deviceList = new ArrayList<Device>();
-        String deviceAndPredictionsQuery = fetchDeviceAndLatestPreditionsQuery(industrialPlantId, latitude, longtitude, getFromDate(durationInMins));
-        Job deviceAndPredictionsJob = createJob(deviceAndPredictionsQuery, bigQueryClient);
-        waitForJobCompletion(deviceAndPredictionsJob);
-        QueryResponse response = bigQueryClient.getQueryResults(deviceAndPredictionsJob.getJobId());
+        String deviceAndPredictionsQuery = fetchDeviceAndLatestPreditionsQuery(industrialPlantId, latitude, longtitude, getFromDate(durationInMins*60));
+        QueryRequest request = QueryRequest.newBuilder(deviceAndPredictionsQuery).build();
+
+        QueryResponse response = bigQueryClient.query(request);
+        while (!response.jobCompleted()) {
+            try {
+                Thread.sleep(1000);
+                response = bigQueryClient.getQueryResults(response.getJobId());
+            } catch (InterruptedException ie) {
+                logger.warning("exception while waiting for the completion of adcount big query execution");
+            }
+        }
         QueryResult result = processResponseAndGetResult(response);
         Iterator<List<FieldValue>> rowItr = result.iterateAll().iterator();
 
@@ -258,6 +318,11 @@ public class OilRigsDevicesManager {
                     if (loopCount == 1) {
                         device.setRulVal(columns.get(loopCount).getDoubleValue());
                     }
+                    else {
+                        if (loopCount == 2) {
+                            device.setCycle(columns.get(loopCount).getLongValue());
+                        }
+                    }
                 }
 
             }
@@ -267,7 +332,9 @@ public class OilRigsDevicesManager {
         return deviceList;
     }
 
-    private String getFromDate(int durationInMins) {
-        return LocalDateTime.now().minusMinutes(durationInMins).toString();
+    private String getFromDate(int durationInSecs) {
+        return LocalDateTime.now().minusSeconds(durationInSecs).toString();
     }
+
+
 }
