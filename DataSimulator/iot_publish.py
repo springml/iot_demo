@@ -60,6 +60,19 @@ class Device(object):
 							self.sensor_trends[feature + "_" + str(cycle) + "_" + "std"] ))
 		return json.dumps(sensor_reading)
 
+	def dead_sensor_data(self, cycle):
+		"""Pretend to read the device's feature data."""
+		sensor_reading = collections.OrderedDict()
+		sensor_reading["IndustrialPlantName"] = self.IndustrialPlant
+		sensor_reading["Latitude"] = self.latitude
+		sensor_reading["Longtitude"] = self.longitude
+		sensor_reading["UnitNumber"] = self.unit
+		sensor_reading["Cycle"] = 99999999
+		for feature in self.features:
+			sensor_reading[feature] = abs(np.random.normal(self.sensor_trends[feature + "_" + str(cycle) + "_" + "mean"], \
+							self.sensor_trends[feature + "_" + str(cycle) + "_" + "std"] ))
+		return json.dumps(sensor_reading)
+	
 	def wait_for_connection(self, timeout):
 		"""Wait for the device to become connected."""
 		total_time = 0
@@ -240,11 +253,15 @@ def main():
 	
 
 	#looping through the lifecycle of each device and publishing the measurements
-	for cycle in xrange(1, max_device_time):
+	for cycle in xrange(1, max_device_time+2):
 
 		for j in xrange(len(Devices)):
 			
 			if cycle > Devices[j].device_time:
+				payload = Devices[j].dead_sensor_data(cycle)
+				Clients[j].publish(Devices[j].mqtt_telemetry_topic, payload, qos=1)
+				print payload
+				time.sleep(float(args.publish_latency))
 				continue
 
 			payload = Devices[j].update_sensor_data(cycle)
