@@ -9,6 +9,8 @@ public class OilRig {
     Double Longtitude;
     Double remainingLifeCycle;
 
+
+
     public Double getRemainingLifeCycle() {
         return remainingLifeCycle;
     }
@@ -40,5 +42,9 @@ public class OilRig {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String toString(){
+        return "Name:"+this.name + " - Lat"+this.latitude+"-Long"+this.getLongtitude();
     }
 }
