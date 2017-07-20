@@ -253,7 +253,9 @@
             var rulVal = getUrlParameter('rulValue');
             var device_id = getUrlParameter('device_id');
             var lastRulVal;
-            var currentCycle , lastCycle;
+            var currentCycle;
+             var lastCycle;
+             var end_of_lifecycle = getUrlParameter('end_of_lifecycle');
             var sensor1Chart , sensor2Chart , sensor3Chart , sensor4Chart;
 
             if( deviceId == 'crown_block')
@@ -262,12 +264,12 @@
                 deviceTitle = 'Traveling Block';
             else 
                 deviceTitle = 'Top Drive';
-            $("#sensorDetails").html( "<b>" +deviceTitle +"'s remaining life Cylce</b> : " + rulVal);
-            setRulValProgressbar();
+          //  $("#sensorDetails").html( "<b>" +deviceTitle +"'s remaining life Cylce</b> : " + rulVal);
+          //  setRulValProgressbar();
          
             // To show rectangular indicator at the top of the page
             function setRulValProgressbar(){
-                if( rulVal > 200 && rulVal <= 350 && rulVal!=lastRulVal){
+                if( rulVal > 200 && rulVal <= 350 && rulVal!=lastRulVal && end_of_lifecycle=='false'){
                     $("#safe-divider-one").addClass('safe-divider-one-class');
                     //Remove 
                     $("#safe-divider-two").removeClass('safe-divider-two-class');
@@ -275,7 +277,7 @@
                     $("#risk-divider-one").removeClass('divider-image');
                     $("#risk-divider-two").removeClass('divider-image');
                     $("#danger-divider").removeClass('danger-divider-class');
-                }else if( rulVal > 100 && rulVal <= 200 && rulVal!=lastRulVal){
+                }else if( rulVal > 100 && rulVal <= 200 && rulVal!=lastRulVal && end_of_lifecycle=='false'){
                     $("#safe-divider-two").addClass('safe-divider-two-class');
                     //Remove 
                     $("#safe-divider-one").removeClass('safe-divider-one-class');
@@ -283,7 +285,7 @@
                     $("#risk-divider-one").removeClass('divider-image');
                     $("#risk-divider-two").removeClass('divider-image');
                     $("#danger-divider").removeClass('danger-divider-class');
-                }else if( rulVal > 60 && rulVal <= 100 && rulVal!=lastRulVal){
+                }else if( rulVal > 60 && rulVal <= 100 && rulVal!=lastRulVal && end_of_lifecycle=='false'){
                     $("#safe-divider-three").addClass('divider-image');
                     //Remove 
                     $("#safe-divider-two").removeClass('safe-divider-two-class');
@@ -291,7 +293,7 @@
                     $("#risk-divider-one").removeClass('divider-image');
                     $("#risk-divider-two").removeClass('divider-image');
                     $("#danger-divider").removeClass('danger-divider-class');
-                }else if(rulVal > 30 && rulVal <= 60 && rulVal!=lastRulVal){
+                }else if(rulVal > 30 && rulVal <= 60 && rulVal!=lastRulVal && end_of_lifecycle=='false'){
                     $("#risk-divider-one").addClass('divider-image');
                     //Remove 
                     $("#safe-divider-two").removeClass('safe-divider-two-class');
@@ -299,7 +301,7 @@
                     $("#safe-divider-one").removeClass('safe-divider-one-class');
                     $("#risk-divider-two").removeClass('divider-image');
                     $("#danger-divider").removeClass('danger-divider-class');
-                }else if( rulVal < 30 && rulVal > 0 && rulVal!=lastRulVal){
+                }else if( rulVal < 30 && rulVal > 0 && rulVal!=lastRulVal && end_of_lifecycle=='false'){
                     $("#risk-divider-two").addClass('divider-image');
                     //Remove 
                     $("#safe-divider-two").removeClass('safe-divider-two-class');
@@ -307,7 +309,7 @@
                     $("#risk-divider-one").removeClass('divider-image');
                     $("#safe-divider-one").removeClass('safe-divider-one-class');
                     $("#danger-divider").removeClass('divider-image');        
-                }else if(rulVal!=lastRulVal){
+                }else if(rulVal!=lastRulVal && end_of_lifecycle=='false'){
                     $("#danger-divider").addClass('danger-divider-class');
                     //Remove 
                     $("#safe-divider-two").removeClass('safe-divider-two-class');
@@ -338,7 +340,7 @@
 
             // To show current and historical readings with charts      
             function showCharts(device,deviceId,isUpdate){
-            if(rulVal!=lastRulVal){
+            if(rulVal!=lastRulVal ){
             	var guageReading = [];
             	var units = ['kg','°C','psi','kg/m-s'];
                 var titles = ['Cable Tension','Oil Temperature', "Differential Pressure",'Viscosity'];
