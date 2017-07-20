@@ -307,10 +307,12 @@
                     image = $('img[usemap="#'+map.attr('name')+'"]');
                 var data = $(this).data('maphilight') || {};
                 var rulvalue = $(this).data('value');
-                
+                var tooltipText = deviceName + " -> " +deviceElement.attr('alt');
+                if (rulvalue > -100)
+                    tooltipText = tooltipText + " , " + rulvalue;
                 deviceElement.qtip({
                     content: {
-                        text: deviceName + " -> " +deviceElement.attr('alt') + " , " + rulvalue, // Attempt to grab content from #statesMap-<State> elements first
+                        text: tooltipText , // Attempt to grab content from #statesMap-<State> elements first
                         attr: 'alt' // No content? Grab the content from the 'alt' attribute
                     },
                     position: {

@@ -418,6 +418,8 @@
                		if(chartIndex == 0){
                         lastRulVal = rulVal; 
                         rulVal = deviceSensorReadings['latestRulVal'];
+                        if(rulVal==lastRulVal)
+                            end_of_lifecycle = true;
                         if( lastCycle != null ){
                             $("#sensorDetails").html( '<b>' +deviceTitle +'</b> <br> <b>Remaining Life Cycle Currently predicted </b> : ' + rulVal + ' @ <b> Cycle </b> : ' + currentCycle + '<br> <b> Remaining Life Cycle Last predicted</b> : ' + lastRulVal +' @<b> Cycle </b> : ' + lastCycle);
                        }else{
