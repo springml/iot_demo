@@ -15,6 +15,15 @@ public class Device {
     }
 
     Double rulVal;
+    long cycle;
+
+    public long getCycle() {
+        return cycle;
+    }
+
+    public void setCycle(long cycle) {
+        this.cycle = cycle;
+    }
 
     public String getName() {
 
