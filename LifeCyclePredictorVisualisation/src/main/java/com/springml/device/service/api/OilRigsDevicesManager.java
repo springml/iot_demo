@@ -217,6 +217,7 @@ public class OilRigsDevicesManager {
             for (int loopCount = 0; loopCount < columns.size(); loopCount++) {
                 if (loopCount == 0) {
                     time = columns.get(loopCount).getLongValue();
+                    if(time==99999999) break;
                 } else {
                     if (loopCount == 1) {
                         if (!sensorReadingsOverTimeMapForSensorOne.containsKey(time))
@@ -236,7 +237,7 @@ public class OilRigsDevicesManager {
 
                                 } else {
                                     if (loopCount == 5) {
-                                        if (!rowItr.hasNext())
+                                       // if (!rowItr.hasNext())
                                             latestRulVal = columns.get(loopCount).getDoubleValue();
                                     }
                                 }

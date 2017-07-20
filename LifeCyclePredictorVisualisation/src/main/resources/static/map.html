@@ -274,9 +274,11 @@
                     var max = 270;
                     var target_id = e.target.id;
                     var device_id = $("#"+target_id).data('device_id');
-
+                    var endOfLifeCycle = false;
                         rulValue = rulValues[device_id];
-                    window.location.href = "ChartIndexWithTimegraph.html?deviceName=" + deviceName + "&id=" + e.target.id + "&rulValue=" + rulValue + "&device_id=" + device_id ;
+                        if(rulValue<-1000)
+                        endOfLifeCycle = true;
+                    window.location.href = "ChartIndexWithTimegraph.html?deviceName=" + deviceName + "&id=" + e.target.id + "&rulValue=" + rulValue + "&device_id=" + device_id + "&end_of_lifecycle="+ endOfLifeCycle;
             }); 
         }); // Ready End
 
