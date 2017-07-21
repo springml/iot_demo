@@ -75,9 +75,7 @@ public class DeviceLifeCyclePredictorMLTransormation extends DoFn<TableRow, Tabl
     private TableRow getTableRowFromResponse(LifeCyclePredictionResponse predictionResponse, TableRow responseRow) {
         try {
             float remainingOperationCycles = predictionResponse.getPredictions()[0].getOutputs();
-            if(remainingOperationCycles < 121 ) {
-                LOG.warn("RemainingOperationCycles threshold reached for device with Unit Number"+responseRow.get("UnitNumber")+" The RUL Value is "+remainingOperationCycles);
-            }
+
             responseRow.set("RemainingOperationCycles", remainingOperationCycles);
             responseRow.set("PredictedDate",  LocalDateTime.now().toString());
             //responseRow.set("_PARTITIONTIME",new Timestamp(System.currentTimeMillis()));
