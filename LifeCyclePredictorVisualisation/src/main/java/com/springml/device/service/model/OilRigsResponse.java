@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
- * Created by kaarthikraaj on 15/6/17.
+ * This class represents response for get oilrig service
+ * This instance is converted to json and sent back as response
  */
 public class OilRigsResponse {
     private ArrayList<OilRig> oilRigs = new ArrayList<OilRig>();

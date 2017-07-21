@@ -1,7 +1,7 @@
 package com.springml.device.service.model;
 
 /**
- * Created by kaarthikraaj on 15/6/17.
+ * Represents individual unit of response for getDeviceLifecyclePredictions service
  */
 public class Device {
     String name;
