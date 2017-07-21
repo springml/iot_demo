@@ -1,7 +1,7 @@
 package com.springml.device.service.model;
 
 /**
- * Created by kaarthikraaj on 15/6/17.
+ * This class represents individual unit of response for getoilrigs service
  */
 public class OilRig {
     String name;
