@@ -3,131 +3,54 @@
 	[
 {
 	"Name": "SAR-101",
-	"Latitude": 37.720427,
-	"Longtitude": -95.96803,
-	"Units": [["Unit0", 236], ["Unit1", 210], ["Unit2", 224]] 
+	"Latitude": 37.020427,
+	"Longtitude": -95.06803,
+	"Units": [["Unit0", 266], ["Unit1", 250], ["Unit2", 235]] 
 },
 {
 	"Name": "SAR-102",
 	"Latitude": 38.720427,
 	"Longtitude": -95.96803,
-	"Units": [["Unit0", 221], ["Unit1", 230]] 
+	"Units": [["Unit0", 241], ["Unit1", 239]] 
 	
 },
 {
 	"Name": "AYU-351",
-	"Latitude": 37.720427,
-	"Longtitude": -97.96803,
-	"Units": [["Unit0", 236], ["Unit1", 215], ["Unit2", 224]] 
+	"Latitude": 37.020427,
+	"Longtitude": -97.06803,
+	"Units": [["Unit0", 266], ["Unit1", 245], ["Unit2", 274]] 
 },
 {
 	"Name": "BPP-220",
 	"Latitude": 47.760427,
 	"Longtitude": -101.369803,
-	"Units": [["Unit0", 210],  ["Unit2", 224]] 
+	"Units": [["Unit0", 245],  ["Unit2", 250]] 
 	
 },
 {
 	"Name": "BPP-221",
 	"Latitude": 46.720427,
 	"Longtitude": -102.96803,
-	"Units": [["Unit0", 200], ["Unit1", 220], ["Unit2", 240]] 
+	"Units": [["Unit0", 271], ["Unit1", 238], ["Unit2", 242]] 
 	
-},
-{
-	"Name": "GSF-401",
-	"Latitude": 37.720427,
-	"Longtitude": -95.96803,
-	"Units": [["Unit0", 216], ["Unit1", 200], ["Unit2", 210]] 
-
-},
-{
-	"Name": "GSF-402",
-	"Latitude": 38.0427,
-	"Longtitude": -94.3,
-	"Units": [["Unit0", 245], ["Unit1", 209], ["Unit2", 220]] 
-
-},
-{
-	"Name": "GSF-403",
-	"Latitude": 37.720427,
-	"Longtitude": -97.96803,
-	"Units": [["Unit0", 202], ["Unit1", 240], ["Unit2", 210]] 
-
 },
 {
 	"Name": "ADE-575",
 	"Latitude": 43.720427,
 	"Longtitude": -99.96803,
-	"Units": [["Unit0", 202], ["Unit1", 207], ["Unit2", 192]] 
+	"Units": [["Unit0", 249], ["Unit1", 251], ["Unit2", 262]] 
 
 },
 {
 	"Name": "ADE-576",
 	"Latitude": 43.17,
 	"Longtitude": -100.369803,
-	"Units": [["Unit0", 238], ["Unit1", 207], ["Unit2", 229]] 
+	"Units": [["Unit0", 238], ["Unit1", 253], ["Unit2", 245]] 
 },
 {
 	"Name": "ADE-577",
 	"Latitude": 42.760427,
 	"Longtitude": -100.903,
-	"Units": [["Unit0", 202], ["Unit1", 207], ["Unit2", 199]] 
-},
-{
-	"Name": "ADE-578",
-	"Latitude": 43.427,
-	"Longtitude": -107.369803,
-	"Units": [["Unit0", 212], ["Unit1", 242], ["Unit2", 201]] 
-	
-},
-{
-	"Name": "Rig 13",
-	"Latitude": 42.760427,
-	"Longtitude": -106.369803,
-	"Units": [["Unit0", 202], ["Unit1", 207], ["Unit2", 199]] 
-	
-
-},
-{
-	"Name": "Rig 14",
-	"Latitude": 42.427,
-	"Longtitude": -107.369803,
-	"Units": [["Unit0", 202], ["Unit1", 207], ["Unit2", 199]] 
-	
-},
-{
-	"Name": "Rig 15",
-	"Latitude": 46.720427,
-	"Longtitude": -102.96803,
-	"Units": [["Unit0", 202], ["Unit1", 207], ["Unit2", 199]] 
-	
-},
-{
-	"Name": "ORig16",
-	"Latitude": 31.720427,
-	"Longtitude": -101.96803,
-	"Units": [["Unit0", 202], ["Unit1", 207], ["Unit2", 199]] 
-
-},
-{
-	"Name": "ORig17",
-	"Latitude": 31.20427,
-	"Longtitude": -102.96803,
-	"Units": [["Unit0", 202], ["Unit1", 207], ["Unit2", 199]] 
-
-},
-{
-	"Name": "ORig18",
-	"Latitude": 32.720427,
-	"Longtitude": -100.96803,
-	"Units": [["Unit0", 202], ["Unit1", 207], ["Unit2", 199]] 
-
-},
-{
-	"Name": "ORig19",
-	"Latitude": 42.720427,
-	"Longtitude": -105.96803,
-	"Units": [["Unit0", 202], ["Unit1", 207], ["Unit2", 199]] 
-}]
+	"Units": [["Unit0", 250], ["Unit1", 235], ["Unit2", 261]] 
 }
+]}
