@@ -5,7 +5,6 @@ import com.google.cloud.bigquery.*;
 import com.springml.device.service.model.Device;
 import com.springml.device.service.model.DeviceSensorReadingsOverTimeResponse;
 import com.springml.device.service.model.OilRig;
-import org.apache.tomcat.jni.Time;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.time.LocalDateTime;
@@ -62,8 +61,6 @@ public class OilRigsDevicesManager {
         //callbigquery to get list of IndustrialPlants and form array list
         String industrialPlantsQuery = generateIndustrialPlantsQuery(getFromDate((durationInMins*60)));
 
-       // Job industrialPlantsJob = createJob(industrialPlantsQuery, bigQueryClient);
-       // waitForJobCompletion(industrialPlantsJob);
         QueryRequest request = QueryRequest.newBuilder(industrialPlantsQuery).build();
         logger.info("The query to get oilrigs is "+industrialPlantsQuery);
         QueryResponse response = bigQueryClient.query(request);
@@ -75,9 +72,7 @@ public class OilRigsDevicesManager {
                 logger.warning("exception while waiting for the completion of adcount big query execution");
             }
         }
-       // QueryResponse response = bigQueryClient.getQueryResults(industrialPlantsJob.getJobId());
         QueryResult result = processResponseAndGetResult(response);
-      //  System.out.println("the time at the end of query execution is " + LocalDateTime.now());
 
         Iterator<List<FieldValue>> rowItr = result.iterateAll().iterator();
         logger.info("The result has rows returned?"+rowItr.hasNext());
