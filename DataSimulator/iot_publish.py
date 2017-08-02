@@ -136,7 +136,7 @@ def parse_command_line_args():
 	parser.add_argument(
 		'--project_id', required=True, help='GCP cloud project name')	
 	parser.add_argument(
-		'--private_key_file', default='PemFiles/rsa_private.pem', help='Path to private key file.')
+		'--private_key_file', default='PemFiles/rsa_private.pem', help='Path to RSA private key file.')
 	parser.add_argument(
 		'--pubsub_topic',
 		required=True,
@@ -157,15 +157,20 @@ def parse_command_line_args():
 	parser.add_argument(
 		'--rsa_certificate_file',
 		default='PemFiles/rsa_cert.pem',
-		help='Path to RS256 certificate file.')
+		help='Path to RSA certificate file.')
 	parser.add_argument(
 		'--ca_certs',
 		default='PemFiles/roots.pem',
-		help='CA root certificate. Get from https://pki.google.com/roots.pem')
+		help='Path to CA root certificate. Get from https://pki.google.com/roots.pem')
 	parser.add_argument(
 		'--publish_latency',
 		default=.08,
 		help='Publish Latency'
+		)
+	parser.add_argument(
+		'--iot_registry',
+		required=True,
+		help='IOT Registry'
 		)
 
 	return parser.parse_args()
@@ -225,12 +230,12 @@ def get_plants_info(plants_info_dir, num_plants):
 def main():
 	args = parse_command_line_args()
 
-	registry_id = 'cloudiot_device_manager_registry_18923213'
+	#registry_id = 'cloudiot_device_manager_registry_18923213'
 	#registry_id = 'cloudiot_device_manager_registry_{}'.format(int(time.time()))
 
 	#Looking up already called registry based upon registry_id specified above
 	device_registry = DeviceRegistry( \
-		args.project_id, registry_id, args.cloud_region, \
+		args.project_id, args.iot_registry, args.cloud_region, \
 		args.service_account_json, args.api_key, args.pubsub_topic)
 
 
@@ -244,7 +249,7 @@ def main():
 		for unit in xrange(len(plant["Units"])):
 			device_id = ''.join(random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ') for i in xrange(10))
 			device_registry.create_device_with_rs256(device_id, args.rsa_certificate_file)
-			client, device = setup_client_device(registry_id, device_id, unit, plant)
+			client, device = setup_client_device(args.iot_registry, device_id, unit, plant)
 			Clients.append(client)
 			Devices.append(device)
 

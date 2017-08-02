@@ -11,11 +11,11 @@ from tensorflow.contrib.learn.python.learn.utils import (
 def generate_experiment_fn(train_files,
                            eval_files,
                            num_epochs=None,
-                           train_batch_size=40,
-                           eval_batch_size=40,
+                           train_batch_size=100,
+                           eval_batch_size=100,
                            embedding_size=8,
                            first_layer_size=100,
-                           num_layers=4,
+                           num_layers=2,
                            scale_factor=0.7,
                            **experiment_args):
   """Create an experiment function given hyperparameters.
@@ -90,13 +90,13 @@ if __name__ == '__main__':
       '--train-batch-size',
       help='Batch size for training steps',
       type=int,
-      default=40
+      default=15
   )
   parser.add_argument(
       '--eval-batch-size',
       help='Batch size for evaluation steps',
       type=int,
-      default=40
+      default=15
   )
   parser.add_argument(
       '--train-steps',
