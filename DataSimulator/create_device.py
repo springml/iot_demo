@@ -30,6 +30,7 @@ class DeviceRegistry(object):
         self.full_name = '{}/registries/{}'.format(self.parent, registry_id)
         credentials = service_account.Credentials.from_service_account_file(
                         service_account_json)
+        print project_id, registry_id, cloud_region, service_account_json, api_key, pubsub_topic, API_SCOPES
         scoped_credentials = credentials.with_scopes(API_SCOPES)
 
         if not credentials:
