@@ -38,7 +38,7 @@ public class DeviceLifeCyclePredictorMLTransormation extends DoFn<TableRow, Tabl
     }
 
     public static void main(String args[]) {
-        DeviceLifeCyclePredictorMLTransormation client = new DeviceLifeCyclePredictorMLTransormation("https://ml.googleapis.com/v1beta1/projects/mlpdm-168115/models/predictivemaintenance_v3/versions/v3:predict");
+        DeviceLifeCyclePredictorMLTransormation client = new DeviceLifeCyclePredictorMLTransormation("https://ml.googleapis.com/v1/projects/mlpdm-168115/models/predictivemaintenance_v5/versions/v5:predict");
         TableRow tableRow = new TableRow();
         tableRow.set("UnitNumber", "101");
         tableRow.set("Cycle", 101);
