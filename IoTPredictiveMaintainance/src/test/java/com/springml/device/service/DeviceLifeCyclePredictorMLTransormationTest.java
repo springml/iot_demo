@@ -4,6 +4,11 @@ import com.google.api.services.bigquery.model.TableRow;
 import com.google.cloud.dataflow.sdk.options.PipelineOptionsFactory;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Properties;
+
 import static org.junit.Assert.assertNotEquals;
 
 
@@ -16,7 +21,15 @@ public class DeviceLifeCyclePredictorMLTransormationTest {
 
     @Test
     public void testLifeCyclePredictorTransformation() {
-        String[] args = {"--project=mlpdm-168115" ,"--stagingLocation=gs://pdmdemo/predictivemaintenance/", "--runner=DataflowPipelineRunner", "--streaming=true","--numWorkers=1", "--zone=us-central1-a", "--sourceTopic=iot_mlpdm"};
+        Properties argsProperties = new Properties();
+        try {
+            argsProperties.load(new FileReader(new File("application.properties")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String argsOptions = argsProperties.getProperty("args");
+        String[] args = argsOptions.split(",");
+
         DeviceLifeCyclePredictorPipelineOptions options =
                 PipelineOptionsFactory.fromArgs(args).withValidation().as(DeviceLifeCyclePredictorPipelineOptions.class);
         String mlUrl = options.getIotPredictiveMaintainanceMLUrl();

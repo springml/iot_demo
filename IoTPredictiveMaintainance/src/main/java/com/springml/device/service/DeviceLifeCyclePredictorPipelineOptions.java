@@ -30,7 +30,7 @@ public interface DeviceLifeCyclePredictorPipelineOptions extends DataflowPipelin
     void setSubscriptionName(String value);
 
     @Description("IOT Predictive Maintance ML url")
-    @Default.String("https://ml.googleapis.com/v1beta1/projects/mlpdm-168115/models/predictivemaintenance_v5/versions/v5:predict")
+    @Default.String("https://ml.googleapis.com/v1/projects/mlpdm-168115/models/predictivemaintenance_v5/versions/v5:predict")
     @Validation.Required
     String getIotPredictiveMaintainanceMLUrl();
 
