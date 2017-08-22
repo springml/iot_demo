@@ -422,9 +422,9 @@
                             if(rulVal==lastRulVal)
                                 end_of_lifecycle = true;
                             if( lastCycle != null ){
-                                $("#sensorDetails").html( '<b>' +deviceTitle +'</b> <br> <b>Remaining Life Cycle Currently predicted </b> : ' + rulVal + ' @ <b> Cycle </b> : ' + currentCycle + '<br> <b> Remaining Life Cycle Last predicted</b> : ' + lastRulVal +' @<b> Cycle </b> : ' + lastCycle);
+                                $("#sensorDetails").html( '<b>' +deviceTitle +'</b> <br> <b>Remaining life cycle currently predicted </b> : ' + rulVal + ' @ <b> Cycle </b> : ' + currentCycle + '<br> <b> Remaining life cycle last predicted</b> : ' + lastRulVal +' @<b> Cycle </b> : ' + lastCycle);
                            }else{
-                                $("#sensorDetails").html( '<b>' +deviceTitle +'</b> <br> <b>Remaining Life Cycle Currently predicted </b> : ' + rulVal + ' @ <b> Cycle </b> : ' + currentCycle );
+                                $("#sensorDetails").html( '<b>' +deviceTitle +'</b> <br> <b>Remaining life cycle currently predicted </b> : ' + rulVal + ' @ <b> Cycle </b> : ' + currentCycle );
                            }
                            setRulValProgressbar();
                            $("#sensor1").css("cssText","background:url('images/"+titles[chartIndex]+".png');background-repeat:no-repeat;backgroud-size:120px 150px;background-position:center;");
