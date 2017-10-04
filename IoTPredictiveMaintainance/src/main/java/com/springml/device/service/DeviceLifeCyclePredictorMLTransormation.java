@@ -19,6 +19,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -77,11 +78,11 @@ public class DeviceLifeCyclePredictorMLTransormation extends DoFn<TableRow, Tabl
             float remainingOperationCycles = predictionResponse.getPredictions()[0].getOutputs();
 
             responseRow.set("RemainingOperationCycles", remainingOperationCycles);
-            responseRow.set("PredictedDate",  LocalDateTime.now().toString());
+            responseRow.set("PredictedDate",  LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
             //responseRow.set("_PARTITIONTIME",new Timestamp(System.currentTimeMillis()));
         } catch (Exception exc) {
             responseRow.set("RemainingOperationCycles", -99999);
-            responseRow.set("PredictedDate",  LocalDateTime.now().toString());
+            responseRow.set("PredictedDate",  LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
             LOG.info("Exception while parsing response" + exc.getMessage().toString());
             throw exc;
         }
