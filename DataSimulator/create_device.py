@@ -7,7 +7,7 @@ from googleapiclient import discovery
 from googleapiclient.errors import HttpError
 
 API_SCOPES = ['https://www.googleapis.com/auth/cloud-platform']
-API_VERSION = 'v1beta1'
+API_VERSION = 'v1'
 DISCOVERY_API = 'https://cloudiot.googleapis.com/$discovery/rest'
 SERVICE_NAME = 'cloudiot'
 
